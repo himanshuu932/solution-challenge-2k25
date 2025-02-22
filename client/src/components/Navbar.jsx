@@ -32,7 +32,7 @@ function Navbar({ setActiveScreen, user, setUser, connectionStatus, isProcessing
   };
 
   // Extract the first name from the user's full name.
-  const fullFirstName = user?.name?.split(" ")[0] || "User";
+  const fullFirstName = user.split(" ")[0] || "User";
   // In mobile mode, display only the first letter; otherwise, display the full first name.
   const displayName = isMobile ? fullFirstName.charAt(0) : fullFirstName;
 
@@ -62,7 +62,7 @@ function Navbar({ setActiveScreen, user, setUser, connectionStatus, isProcessing
       {/* Desktop Center Navigation Links */}
       <ul className="navbar-links">
         <li className="nav-item">
-          <a className="nav-link" onClick={() => setActiveScreen(1)}>
+          <a className="nav-link" onClick={() => alert(user)}>
             Home
           </a>
         </li>

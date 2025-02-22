@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import axios from 'axios';
 import Home from './Home';
 
+
 // Login Form Component
-const LoginForm = ({ onSuccess }) => {
+const LoginForm = ({ onSuccess,setUser }) => {
   const [message, setMessage] = useState({ text: '', type: '' });
 
   const handleLogin = async (e) => {
@@ -21,6 +22,8 @@ const LoginForm = ({ onSuccess }) => {
       if (res.data.ok) {
         setMessage({ text: 'Login Successful!', type: 'success' });
         localStorage.setItem('token', res.data.token);
+        localStorage.setItem("username", res.data.user.username);
+        setUser(res.data.user.username);
         if (onSuccess) onSuccess();
       } else {
         setMessage({ text: 'Invalid Credentials!', type: 'error' });
@@ -79,6 +82,7 @@ const SignupForm = ({ onSuccess }) => {
           });
           setMessage({ text: 'User already exists. Logged you in!', type: 'success' });
           localStorage.setItem('token', loginRes.data.token);
+
           if (onSuccess) onSuccess();
         } catch (loginErr) {
           setMessage({
@@ -111,7 +115,7 @@ const SignupForm = ({ onSuccess }) => {
 };
 
 // Main Authentication Component
-const Auth = () => {
+const Auth = ({user,setUser}) => {
   // Toggle between login and signup forms
   const [isLogin, setIsLogin] = useState(true);
   // Track if the user is logged in
@@ -120,11 +124,20 @@ const Auth = () => {
   // When login/signup is successful, set isLoggedIn to true
   const handleSuccess = () => {
     setIsLoggedIn(true);
+
   };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setUser(localStorage.getItem("username"));
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, []); // ✅ Dependency array inside useEffect
+  
 
   // If logged in, show the Home component
   if (isLoggedIn) {
-    return <Home />;
+    return <Home user={user} token={localStorage.getItem('token')}/>;
   }
 
   // Otherwise, show the authentication forms
@@ -133,7 +146,7 @@ const Auth = () => {
       <div className="auth-box">
         <h2>{isLogin ? 'Login' : 'Signup'}</h2>
         {isLogin ? (
-          <LoginForm onSuccess={handleSuccess} />
+          <LoginForm onSuccess={handleSuccess} setUser={setUser} />
         ) : (
           <SignupForm onSuccess={handleSuccess} />
         )}

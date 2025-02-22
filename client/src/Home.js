@@ -49,7 +49,6 @@ function Home1({ user, setUser,saved,setSaved }) {
          isProcessing={isProcessing}
          setIsProcessing={setIsProcessing}
          />} */}
-        
         {/* {activeScreen === 4 && <AboutUs  isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode}/>}
         {activeScreen === 3 && <ChatSection setActiveScreen={setActiveScreen}   messages={messages} setMessages={setMessages} />} */}
       </ div>}
