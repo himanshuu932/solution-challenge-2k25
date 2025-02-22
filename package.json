@@ -1,0 +1,25 @@
+{
+  "name": "sc25",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/himanshuu932/solution-challenge-2k25#readme",
+  "bugs": {
+    "url": "https://github.com/himanshuu932/solution-challenge-2k25/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/himanshuu932/solution-challenge-2k25.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\" ",
+    "client": "npm start --prefix client",
+    "server": "npm start --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
