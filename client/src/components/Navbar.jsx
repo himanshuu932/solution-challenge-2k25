@@ -27,9 +27,11 @@ function Navbar({ setActiveScreen, user, setUser, connectionStatus, isProcessing
   // For JWT, logout is handled by removing the token from storage and clearing user state.
   const handleLogout = () => {
     localStorage.removeItem("token");
-    setUser(null);
-    console.log("Logout successful. Token removed from localStorage.");
+    localStorage.removeItem("username"); // Ensure username is also removed
+   // setUser(null); // Reset user state
+    window.location.reload(); // Refresh page to reset state completely
   };
+  
 
   // Extract the first name from the user's full name.
   const fullFirstName = user.split(" ")[0] || "User";
