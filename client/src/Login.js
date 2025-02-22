@@ -1,77 +1,156 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Home from './Home';
 
-const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [message, setMessage] = useState('');
+// Login Form Component
+const LoginForm = ({ onSuccess }) => {
+  const [message, setMessage] = useState({ text: '', type: '' });
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     const formData = {
-      username: e.target.username?.value || '',
       email: e.target.email.value,
       password: e.target.password.value,
     };
 
-    console.log("Form Submitted:", formData);
+    try {
+      const res = await axios.post('/api/auth/login', formData);
+      console.log("Login Data:", res.data);
 
-    const url = isLogin ? '/api/auth/login' : '/api/auth/signup';
-    console.log("API Endpoint:", url);
+      if (res.data.ok) {
+        setMessage({ text: 'Login Successful!', type: 'success' });
+        localStorage.setItem('token', res.data.token);
+        if (onSuccess) onSuccess();
+      } else {
+        setMessage({ text: 'Invalid Credentials!', type: 'error' });
+      }
+    } catch (err) {
+      setMessage({
+        text: err.response?.data?.msg || 'Login error occurred',
+        type: 'error',
+      });
+    }
+  };
+
+  return (
+    <form onSubmit={handleLogin}>
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+      {message.text && (
+        <p className="message" style={{ color: message.type === 'success' ? 'green' : 'red' }}>
+          {message.text}
+        </p>
+      )}
+    </form>
+  );
+};
+
+// Signup Form Component
+const SignupForm = ({ onSuccess }) => {
+  const [message, setMessage] = useState({ text: '', type: '' });
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+
+    const formData = {
+      username: e.target.username.value,
+      email: e.target.email.value,
+      password: e.target.password.value,
+    };
 
     try {
-      const res = await axios.post(url, formData);
-      console.log("API Response:", res.data);
-
-      setMessage(isLogin ? 'Login Successful!' : 'Signup Successful!');
-      localStorage.setItem('token', res.data.token);
+      const res = await axios.post('/api/auth/signup', formData);
+      if (res.data.ok) {
+        setMessage({ text: 'Signup Successful!', type: 'success' });
+        localStorage.setItem('token', res.data.token);
+        if (onSuccess) onSuccess();
+      } else {
+        setMessage({ text: 'Signup Failed!', type: 'error' });
+      }
     } catch (err) {
-     // console.error("API Error:", err.response);
-
-      // Handle "User already exists" and auto-login
-      if (!isLogin && err.response?.data?.msg === 'User already exists') {
+      // If the user already exists, attempt auto-login
+      if (err.response?.data?.msg === 'User already exists') {
         try {
           const loginRes = await axios.post('/api/auth/login', {
             email: formData.email,
             password: formData.password,
           });
-          console.log("Auto Login Response:", loginRes.data);
-
-          setMessage('User already exists. Logged you in!');
+          setMessage({ text: 'User already exists. Logged you in!', type: 'success' });
           localStorage.setItem('token', loginRes.data.token);
+          if (onSuccess) onSuccess();
         } catch (loginErr) {
-          console.error("Auto Login Error:", loginErr.response);
-          setMessage('User exists, but login failed. Check password.');
+          setMessage({
+            text: 'User exists, but login failed. Check password.',
+            type: 'error',
+          });
         }
       } else {
-        setMessage(err.response?.data?.msg || 'An error occurred');
+        setMessage({
+          text: err.response?.data?.msg || 'Signup error occurred',
+          type: 'error',
+        });
       }
     }
   };
 
   return (
-    <div className="auth-container">
+    <form onSubmit={handleSignup}>
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Signup</button>
+      {message.text && (
+        <p className="message" style={{ color: message.type === 'success' ? 'green' : 'red' }}>
+          {message.text}
+        </p>
+      )}
+    </form>
+  );
+};
+
+// Main Authentication Component
+const Auth = () => {
+  // Toggle between login and signup forms
+  const [isLogin, setIsLogin] = useState(true);
+  // Track if the user is logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // When login/signup is successful, set isLoggedIn to true
+  const handleSuccess = () => {
+    setIsLoggedIn(true);
+  };
+
+  // If logged in, show the Home component
+  if (isLoggedIn) {
+    return <Home />;
+  }
+
+  // Otherwise, show the authentication forms
+  return (<>
+    { !isLoggedIn && <div className="auth-container">
       <div className="auth-box">
         <h2>{isLogin ? 'Login' : 'Signup'}</h2>
-        <form onSubmit={handleSubmit}>
-          {!isLogin && (
-            <input type="text" name="username" placeholder="UserName" required={!isLogin} />
-          )}
-          <input type="email" name="email" placeholder="Email" required />
-          <input type="password" name="password" placeholder="Password" required />
-          <button type="submit">{isLogin ? 'Login' : 'Signup'}</button>
-        </form>
-
+        {isLogin ? (
+          <LoginForm onSuccess={handleSuccess} />
+        ) : (
+          <SignupForm onSuccess={handleSuccess} />
+        )}
         <p>
-          {isLogin ? "Don't have an account?" : 'Already have an account?'}
-          <button onClick={() => setIsLogin(!isLogin)} className="toggle-btn">
+          {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
+          <span
+            onClick={() => setIsLogin(!isLogin)}
+            className="toggle-btn"
+            style={{ cursor: 'pointer', color: 'blue' }}
+          >
             {isLogin ? 'Signup' : 'Login'}
-          </button>
+          </span>
         </p>
-
-        {message && <p className="message">{message}</p>}
       </div>
-    </div>
+     
+    </div> }
+    </>
   );
 };
 
