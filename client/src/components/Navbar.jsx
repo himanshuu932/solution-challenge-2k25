@@ -1,22 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import TestComponent from "./TestComponent";
 import "./styles/Navbar.css";
 import darkmode from "../icons/dark.png";
 import lightmode from "../icons/light.png";
+import l from "../icons/user.png"; // Assuming user image is here
+import { Home, MessageCircle, ClipboardList, Info, Heart } from 'lucide-react';
 
-function Navbar({ setActiveScreen, user, setUser, connectionStatus, isProcessing,isDarkMode,setIsDarkMode }) {
- 
+function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // Determine if viewport is mobile (less than 768px)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTestOpen, setIsTestOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [hovered, setHovered] = useState(null);
+  const profileRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     window.addEventListener("resize", handleResize);
-    // Cleanup on unmount
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const toggleTheme = () => {
@@ -24,103 +37,111 @@ function Navbar({ setActiveScreen, user, setUser, connectionStatus, isProcessing
     document.body.classList.toggle("dark-mode", !isDarkMode);
   };
 
-  // For JWT, logout is handled by removing the token from storage and clearing user state.
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("username"); // Ensure username is also removed
-   // setUser(null); // Reset user state
-    window.location.reload(); // Refresh page to reset state completely
+    setUser(null);
+    console.log("Logout successful. Token removed from localStorage.");
   };
-  
 
-  // Extract the first name from the user's full name.
   const fullFirstName = user.split(" ")[0] || "User";
-  // In mobile mode, display only the first letter; otherwise, display the full first name.
   const displayName = isMobile ? fullFirstName.charAt(0) : fullFirstName;
 
-  // When a nav item is clicked on mobile, change screen and close the menu.
+  const navItems = [
+    { id: 1, name: 'Home', icon: <Home /> },
+    { id: 2, name: 'Discussion', icon: <MessageCircle /> },
+    { id: 3, name: 'Test', icon: <ClipboardList /> },
+    { id: 4, name: 'About Us', icon: <Info /> },
+    { id: 5, name: 'Donate', icon: <Heart /> },
+  ];
+
   const handleNavClick = (screen) => {
-    setActiveScreen(screen);
+    if (screen === 3) {
+      setIsTestOpen(true);
+      setActiveScreen(null);
+    } else {
+      setIsTestOpen(false);
+      setActiveScreen(screen);
+    }
     setIsMobileMenuOpen(false);
   };
 
   return (
-    <nav className={`navbar ${isDarkMode ? "dark" : "light"}`}>
-      {/* Left Section: Hamburger (mobile) and Brand */}
-      <div className="navbar-left">
-        <div
-          className="mobile-menu-toggle"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          <svg width="30" height="30" viewBox="0 0 100 80" fill="currentColor">
-            <rect width="100" height="10"></rect>
-            <rect y="30" width="100" height="10"></rect>
-            <rect y="60" width="100" height="10"></rect>
-          </svg>
+    <>
+      <nav className={`navbar ${isDarkMode ? 'dark' : 'light'}`}>
+        {/* Left Section: Hamburger and Brand */}
+        <div className="navbar-left">
+          <div className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            <svg width="30" height="30" viewBox="0 0 100 80" fill="currentColor">
+              <rect width="100" height="10"></rect>
+              <rect y="30" width="100" height="10"></rect>
+              <rect y="60" width="100" height="10"></rect>
+            </svg>
+          </div>
+          <div className="navbar-brand">[Name]</div>
         </div>
-        <div className="navbar-brand">[Name]</div>
-      </div>
 
-      {/* Desktop Center Navigation Links */}
-      <ul className="navbar-links">
-        <li className="nav-item">
-          <a className="nav-link" onClick={() => alert(user)}>
-            Home
-          </a>
-        </li>
-        <li className="nav-item">
-          <a className="nav-link" onClick={() => setActiveScreen(2)}>
-            Documents
-          </a>
-        </li>
-        <li className="nav-item">
-          <a className="nav-link" onClick={() => setActiveScreen(3)}>
-            Chat
-          </a>
-        </li>
-        <li className="nav-item">
-          <a className="nav-link" onClick={() => setActiveScreen(4)}>
-            About Us
-          </a>
-        </li>
-      </ul>
+        {/* Center Navigation Links */}
+        <ul className="navbar-links">
+          {navItems.map((item) => (
+            <li
+              key={item.id}
+              className="nav-item"
+              onMouseEnter={() => setHovered(item.id)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => handleNavClick(item.id)}
+            >
+              <div className={`nav-icon ${hovered === item.id ? 'hovered' : ''}`}>
+                {item.icon}
+                {hovered === item.id && <span className="icon-label">{item.name}</span>}
+              </div>
+            </li>
+          ))}
+        </ul>
 
-      {/* Right Section: Status Dot, Mode Toggle, Username, and Logout */}
-      <div className="navbar-right">
-        
-      
-        <img
-          src={isDarkMode ? lightmode : darkmode}
-          alt={isDarkMode ? "Light Mode" : "Dark Mode"}
-          className="mode-toggle icon-image"
-          onClick={toggleTheme}
-        />
-        <div className="user-name-display">{displayName}</div>
-        <button className="logout-button" onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
+        {/* Right Section: Mode Toggle, Profile, and Logout */}
+        <div className="navbar-right">
+          <img
+            src={isDarkMode ? lightmode : darkmode}
+            alt={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            className="mode-toggle icon-image"
+            onClick={toggleTheme}
+          />
 
-      {/* Mobile Menu Dropdown: Navigation Links */}
+          <div className="profile-container" ref={profileRef}>
+            <img
+              src={l}
+              alt="Profile"
+              className="profile-icon"
+              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+            />
+
+            {isProfileDropdownOpen && (
+              <div className="profile-dropdown">
+                <img src={l} alt="Profile" className="profile-pic" />
+                <div className="profile-username">{fullFirstName}</div>
+                <button className="view-profile-btn" onClick={() => setActiveScreen(6)}>View Your Profile</button>
+                <button className="logout-button" onClick={handleLogout}>Logout</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="mobile-menu">
           <ul>
-            <li>
-             <a onClick={() => handleNavClick(1)}>Home</a>
-            </li>
-            <li>
-              <a onClick={() => handleNavClick(2)}>Documents</a>
-            </li>
-            <li>
-              <a onClick={() => handleNavClick(3)}>Chat</a>
-            </li>
-            <li>
-              <a onClick={() => handleNavClick(4)}>About Us</a>
-            </li>
+            <li><a onClick={() => setActiveScreen(1)}>Home</a></li>
+            <li><a onClick={() => setActiveScreen(2)}>Documents</a></li>
+            <li><a onClick={() => setActiveScreen(3)}>Chat</a></li>
+            <li><a onClick={() => setActiveScreen(4)}>About Us</a></li>
           </ul>
         </div>
       )}
-    </nav>
+
+      {/* Test Component */}
+      {isTestOpen && <TestComponent isOpen={isTestOpen} onClose={() => setIsTestOpen(false)} />}
+    </>
   );
 }
 

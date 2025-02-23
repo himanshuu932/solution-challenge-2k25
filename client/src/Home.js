@@ -1,5 +1,6 @@
 import React, { useState, useEffect, act } from "react";
 import Navbar from "./components/Navbar";
+import TestComponent from "./components/TestComponent";
 
 import "./Home.css";
 
@@ -29,6 +30,12 @@ function Home1({ user, setUser,saved,setSaved }) {
    // chatContainer.style.display = 'none'; // Hide the chat container
     body.classList.remove('blurred');    // Remove blur effect
   }
+
+  const announcements = [
+    'Scheduled maintenance on Feb 28th, 12:00 AM - 2:00 AM.',
+    'New feature rollout next week!',
+    'Join our community event on March 5th.'
+  ];
   
 
   return (
@@ -52,6 +59,26 @@ function Home1({ user, setUser,saved,setSaved }) {
         {/* {activeScreen === 4 && <AboutUs  isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode}/>}
         {activeScreen === 3 && <ChatSection setActiveScreen={setActiveScreen}   messages={messages} setMessages={setMessages} />} */}
       </ div>}
+     {/* Render only the selected screen */}
+     {activeScreen === 1 && (
+        <>
+         
+          <div className="announcement-section">
+            <h2 className="announcement-title">Announcements</h2>
+            <ul className="announcement-list">
+              {announcements.map((note, idx) => (
+                <li key={idx} className="announcement-item">
+                  <span className="ping-dot">
+                    <span className="ping-animate"></span>
+                    <span className="ping-core"></span>
+                  </span>
+                  <p className="announcement-text">{note}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
     </div>
   );
 }
