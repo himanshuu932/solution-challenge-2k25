@@ -1,21 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaSearch, FaFilter, FaTrophy } from "react-icons/fa";
+import axios from "axios"; // Import axios for API calls
+import MCQQuiz from "./MCQQuiz";
+import TestSelection from "./TestSelection";
 import "./styles/TestComponent.css";
 
 const TestComponent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
-
-  const tests = [
-    { title: "Chapter 5: Trigonometry Quiz", subject: "Mathematics", difficulty: "Hard", questions: 20, time: "30 min", status: "Pending", progress: 50 },
-    { title: "Physics Laws Assessment", subject: "Physics", difficulty: "Medium", questions: 15, time: "25 min", status: "Completed", progress: 100 },
-    { title: "Chemistry Basics Test", subject: "Chemistry", difficulty: "Easy", questions: 10, time: "20 min", status: "Recommended", progress: 75 },
-  ];
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [difficulty, setDifficulty] = useState("easy");
+  const [startTest, setStartTest] = useState(false);
+  const [tests, setTests] = useState([]); // State to store test data
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
 
   const badges = [
     { name: "Speedster", description: "Completed a test in under 10 minutes", icon: <FaTrophy className="badge-icon" /> },
     { name: "Mastermind", description: "Scored 100% on a quiz", icon: <FaTrophy className="badge-icon" /> },
   ];
+
+  // Fetch test data from the backend
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/auth/tests"); // Replace with your API endpoint
+        setTests(response.data.tests); // Store the fetched test data
+        setLoading(false); // Set loading to false
+      } catch (err) {
+        console.log(err);
+        setError("Failed to fetch tests. Please try again."); // Set error message
+        setLoading(false); // Set loading to false
+        console.error(err);
+      }
+    };
+
+    fetchTests();
+  }, []);
+
+  const handleTestClick = (test) => {
+    setSelectedTest(test);
+
+    // If the test type is "multiple-choice", directly start the MCQ quiz
+    if (test.type === "multiple-choice") {
+      setStartTest(true); // Start the MCQ quiz
+    } else {
+      setStartTest(false); // Show the test selection screen for other types
+    }
+  };
+
+  const handleStartTest = () => {
+    setStartTest(true);
+  };
+
+  // Filter tests based on search term and selected filter
+  const filteredTests = tests.filter((test) => {
+    const matchesSearch = test.testName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = selectedFilter === "All" || test.level === selectedFilter;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="test-dashboard">
@@ -53,28 +96,48 @@ const TestComponent = () => {
           </div>
         </header>
 
-        <section className="test-grid">
-          {tests.map((test, index) => (
-            <div key={index} className="test-card">
-              <div className="test-header-card">
-                <h3>{test.title}</h3>
-                <p className="test-subject">{test.subject}</p>
-              </div>
-              <div className="test-info">
-                <p><strong>Difficulty:</strong> {test.difficulty}</p>
-                <p><strong>Questions:</strong> {test.questions}</p>
-                <p><strong>Time:</strong> {test.time}</p>
-              </div>
-              <div className="progress-bar-container">
-                <div className="progress-bar">
-                  <div className="progress" style={{ width: `${test.progress}%` }}></div>
+        {loading ? (
+          <div className="loading-message">Loading tests...</div>
+        ) : error ? (
+          <div className="error-message">{error}</div>
+        ) : (
+          <section className="test-grid">
+            {filteredTests.map((test, index) => (
+              <div key={index} className="test-card" onClick={() => handleTestClick(test)}>
+                <div className="test-header-card">
+                  <h3>{test.testName}</h3> {/* Use testName from the database */}
+                  <p className="test-subject">{test.topic}</p> {/* Use topic from the database */}
                 </div>
-                <span className="progress-text">{test.progress}%</span>
+                <div className="test-info">
+                  <p><strong>Difficulty:</strong> {test.level}</p> {/* Use level from the database */}
+                  <p><strong>Questions:</strong> {test.numberOfQuestions}</p> {/* Use numberOfQuestions from the database */}
+                  <p><strong>Time:</strong> {test.time || "N/A"}</p> {/* Add time field to your database if needed */}
+                  <p><strong>Teacher:</strong> {test.teacherId}</p> {/* Use teacherId from the database */}
+                  <p><strong>Type:</strong> {test.type}</p> {/* Add status field to your database if needed */}
+                </div>
+                <div className="progress-bar-container">
+                  <div className="progress-bar">
+                    <div className="progress" style={{ width: `${test.progress || 0}%` }}></div> {/* Add progress field to your database if needed */}
+                  </div>
+                  <span className="progress-text">{test.progress || 0}%</span>
+                </div>
+                <button className={`test-btn ${test.status || "pending"}`}>{test.status || "Pending"}</button> {/* Add status field to your database if needed */}
               </div>
-              <button className={`test-btn ${test.status.toLowerCase()}`}>{test.status}</button>
-            </div>
-          ))}
-        </section>
+            ))}
+          </section>
+        )}
+
+        {selectedTest && !startTest && selectedTest.type !== "multiple-choice" && (
+          <TestSelection
+            difficulty={difficulty}
+            setDifficulty={setDifficulty}
+            startTest={handleStartTest}
+          />
+        )}
+
+        {startTest && selectedTest && selectedTest.type === "multiple-choice" && (
+          <MCQQuiz questions={selectedTest.questions} /> 
+        )}
       </main>
     </div>
   );

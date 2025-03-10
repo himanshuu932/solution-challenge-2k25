@@ -6,6 +6,7 @@
   padding: 20px;
   gap: 20px;
   padding-top: 80px; /* Adjust to prevent navbar collision */
+  overflow: hidden; /* Prevent double scrollbars */
 }
 
 .sidebar {
@@ -14,6 +15,7 @@
   padding: 20px;
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto; /* Make sidebar scrollable */
 }
 
 .badges-container {
@@ -38,6 +40,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-y: auto; /* Make main content scrollable */
 }
 
 .test-header {
@@ -50,7 +53,7 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 1;
 }
 
 .search-filter-container {
@@ -169,4 +172,106 @@
 .recommended {
   background: #3b82f6;
   color: white;
+}
+
+/* New Styles for Question Generator */
+.question-generator-wrapper {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.question-generator-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.question-generator-container .title {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-group input,
+.input-group select {
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.generate-btn {
+  background: #3b82f6;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.generate-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 14px;
+  text-align: center;
+}
+
+.questions-list {
+  margin-top: 20px;
+  max-height: 400px; /* Limit height and make it scrollable */
+  overflow-y: auto; /* Make questions list scrollable */
+}
+
+.question-card {
+  background: #f9fafb;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.question-card h3 {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.options-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.options-list li {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 5px;
+}
+
+.correct-answer,
+.explanation,
+.metadata {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.correct-answer strong,
+.explanation strong,
+.metadata strong {
+  color: #333;
 }

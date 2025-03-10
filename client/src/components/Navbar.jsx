@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import TestComponent from "./TestComponent";
+import TestCreator from "./TestCreator";
 import "./styles/Navbar.css";
 import darkmode from "../icons/dark.png";
 import lightmode from "../icons/light.png";
 import l from "../icons/user.png"; // Assuming user image is here
-import { Home, MessageCircle, ClipboardList, Info, Heart } from 'lucide-react';
+import { Home, MessageCircle, ClipboardList, Info, Heart, PlusCircle } from 'lucide-react'; // Added PlusCircle for "Create Test"
 
 function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isTestOpen, setIsTestOpen] = useState(false);
+  const [isTestCreatorOpen, setIsTestCreatorOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [hovered, setHovered] = useState(null);
   const profileRef = useRef(null);
@@ -38,9 +40,15 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    console.log("Logout successful. Token removed from localStorage.");
+    console.log("Attempting to log out...");
+    if (typeof setUser === "function") {
+      localStorage.removeItem("token");
+      setUser(null); // Set user to null
+      console.log("Logout successful.");
+      window.location.reload();
+    } else {
+      console.error("setUser is not a function");
+    }
   };
 
   const fullFirstName = user.split(" ")[0] || "User";
@@ -55,14 +63,21 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   ];
 
   const handleNavClick = (screen) => {
+    // Close all other components when a new navigation item is clicked
+    setIsTestOpen(false);
+    setIsTestCreatorOpen(false);
+    setIsMobileMenuOpen(false);
+
+    // Open the selected component
     if (screen === 3) {
       setIsTestOpen(true);
       setActiveScreen(null);
+    } else if (screen === 6) {
+      setIsTestCreatorOpen(true);
+      setActiveScreen(null);
     } else {
-      setIsTestOpen(false);
       setActiveScreen(screen);
     }
-    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -96,6 +111,18 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
               </div>
             </li>
           ))}
+          {/* Add a new navigation item for Test Creator */}
+          <li
+            className="nav-item"
+            onMouseEnter={() => setHovered(6)}
+            onMouseLeave={() => setHovered(null)}
+            onClick={() => handleNavClick(6)}
+          >
+            <div className={`nav-icon ${hovered === 6 ? 'hovered' : ''}`}>
+              <PlusCircle /> {/* Use a different icon for "Create Test" */}
+              {hovered === 6 && <span className="icon-label">Create Test</span>}
+            </div>
+          </li>
         </ul>
 
         {/* Right Section: Mode Toggle, Profile, and Logout */}
@@ -131,16 +158,25 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
       {isMobileMenuOpen && (
         <div className="mobile-menu">
           <ul>
-            <li><a onClick={() => setActiveScreen(1)}>Home</a></li>
-            <li><a onClick={() => setActiveScreen(2)}>Documents</a></li>
-            <li><a onClick={() => setActiveScreen(3)}>Chat</a></li>
-            <li><a onClick={() => setActiveScreen(4)}>About Us</a></li>
+            <li><a onClick={() => handleNavClick(1)}>Home</a></li>
+            <li><a onClick={() => handleNavClick(2)}>Documents</a></li>
+            <li><a onClick={() => handleNavClick(3)}>Chat</a></li>
+            <li><a onClick={() => handleNavClick(4)}>About Us</a></li>
+            <li><a onClick={() => handleNavClick(6)}>Create Test</a></li>
           </ul>
         </div>
       )}
 
       {/* Test Component */}
       {isTestOpen && <TestComponent isOpen={isTestOpen} onClose={() => setIsTestOpen(false)} />}
+
+      {/* Test Creator Component */}
+      {isTestCreatorOpen && (
+        <TestCreator
+          onClose={() => setIsTestCreatorOpen(false)}
+          teacherId={user} // Pass the teacher's ID if required
+        />
+      )}
     </>
   );
 }

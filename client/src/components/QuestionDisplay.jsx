@@ -1,5 +1,6 @@
 import React from "react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import "./styles/QuestionDisplay.css";
 
 function QuestionDisplay({ question, selectedOption, setSelectedOption, timeUp, setTimeUp }) {
   return (
