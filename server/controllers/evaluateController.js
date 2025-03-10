@@ -76,7 +76,7 @@ Format your response as valid JSON with the following keys:
 
     // Compute overall score as an average.
     const overallScore = totalScore / answers.length;
-    res.json({ overallScore, evaluations });
+    res.json({ overallScore, evaluations, totalScore });
   } catch (error) {
     console.error("Error evaluating short answers:", error);
     res.status(500).json({ error: "Failed to evaluate short answers" });

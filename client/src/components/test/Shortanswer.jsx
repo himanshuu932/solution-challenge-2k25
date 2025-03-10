@@ -153,7 +153,7 @@ const ShortAnswer = ({ questions: initialQuestions = [] }) => {
               ) : evaluation ? (
                 <>
                   <div className="score">
-                    <strong>Your Score:</strong> {evaluation.overallScore} / {questions.length}
+                    <strong>Your Score:</strong> {evaluation.totalScore} / {questions.length}
                   </div>
                   {evaluation.evaluations.map((evalItem, idx) => (
                     <div key={idx} className="evaluation-result">
