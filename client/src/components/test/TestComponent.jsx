@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { FaSearch, FaFilter, FaTrophy } from "react-icons/fa";
 import axios from "axios"; // Import axios for API calls
 import MCQQuiz from "./MCQQuiz";
-import TestSelection from "./TestSelection";
-import "./styles/TestComponent.css";
+import ShortAnswer from "./Shortanswer"; 
+import TestSelection from "../TestSelection";
+import "../styles/TestComponent.css";
 
 const TestComponent = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,6 +45,8 @@ const TestComponent = () => {
     // If the test type is "multiple-choice", directly start the MCQ quiz
     if (test.type === "multiple-choice") {
       setStartTest(true); // Start the MCQ quiz
+    }  else if (test.type === "short-answer" || test.type === "long-answer") {
+      setStartTest(true); // Start the ShortAnswer component
     } else {
       setStartTest(false); // Show the test selection screen for other types
     }
@@ -137,6 +140,10 @@ const TestComponent = () => {
 
         {startTest && selectedTest && selectedTest.type === "multiple-choice" && (
           <MCQQuiz questions={selectedTest.questions} /> 
+        )}
+
+        {startTest && selectedTest && (selectedTest.type === "short-answer" || selectedTest.type === "long-answer") && (
+          <ShortAnswer questions={selectedTest.questions} />
         )}
       </main>
     </div>
