@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import "./styles/MCQQuiz.css";
+import "../styles/ShortAnswer.css";
 
-const MCQQuiz = ({ questions: initialQuestions = [] }) => {
+const ShortAnswer = ({ questions: initialQuestions = [] }) => {
   const [questions, setQuestions] = useState(initialQuestions);
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
+  const [answers, setAnswers] = useState(Array(questions.length).fill(""));
   const [visited, setVisited] = useState(Array(questions.length).fill(false));
   const [timeLeft, setTimeLeft] = useState(300); // 5-minute timer
   const [submitted, setSubmitted] = useState(false);
+  const [files, setFiles] = useState(Array(questions.length).fill(null));
 
-  // Log the questions to verify the data structure
   useEffect(() => {
     console.log("Questions:", questions);
   }, [questions]);
@@ -22,15 +22,22 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  const handleOptionClick = (qIndex, oIndex) => {
+  const handleAnswerChange = (qIndex, value) => {
     if (submitted) return;
     const updatedAnswers = [...answers];
-    updatedAnswers[qIndex] = oIndex;
+    updatedAnswers[qIndex] = value;
     setAnswers(updatedAnswers);
 
     const updatedVisited = [...visited];
     updatedVisited[qIndex] = true;
     setVisited(updatedVisited);
+  };
+
+  const handleFileUpload = (qIndex, file) => {
+    if (submitted) return;
+    const updatedFiles = [...files];
+    updatedFiles[qIndex] = file;
+    setFiles(updatedFiles);
   };
 
   const handleNextOrSubmit = () => {
@@ -43,6 +50,9 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
 
   const handleFinalSubmit = () => {
     setSubmitted(true);
+    // Here you can handle the submission of answers and files
+    console.log("Answers:", answers);
+    console.log("Files:", files);
   };
 
   const formatTime = (seconds) => {
@@ -61,12 +71,10 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
               key={idx}
               className={`question-box ${
                 submitted
-                  ? answers[idx] === null
+                  ? answers[idx] === ""
                     ? "not-answered"
-                    : answers[idx] === q.correct
-                    ? "correct"
-                    : "incorrect"
-                  : answers[idx] !== null
+                    : "answered"
+                  : answers[idx] !== ""
                   ? "answered"
                   : visited[idx]
                   ? "visited"
@@ -79,8 +87,8 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
           ))}
         </div>
         <div className="status-bar">
-          <p>Answered: {answers.filter((a) => a !== null).length}</p>
-          <p>Not Answered: {answers.filter((a) => a === null).length}</p>
+          <p>Answered: {answers.filter((a) => a !== "").length}</p>
+          <p>Not Answered: {answers.filter((a) => a === "").length}</p>
           <p>Visited: {visited.filter((v) => v).length}</p>
         </div>
       </div>
@@ -88,35 +96,30 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
       <div className="main-content">
         <div className="timer">Time Left: {formatTime(timeLeft)}</div>
         <div className="question-block">
-          {/* Render the question text using the `question` property */}
           <h3>Question {currentQ + 1}: {questions[currentQ]?.question}</h3>
-          <div className="options-container">
-            {questions[currentQ]?.options.map((opt, idx) => (
-              <button
-                key={idx}
-                className={`option-button ${
-                  submitted
-                    ? idx === questions[currentQ].correct
-                      ? "correct"
-                      : answers[currentQ] === idx
-                      ? "incorrect"
-                      : ""
-                    : answers[currentQ] === idx
-                    ? "selected"
-                    : ""
-                }`}
-                onClick={() => handleOptionClick(currentQ, idx)}
-              >
-                {opt.text} {/* Render the `text` property of the option object */}
-              </button>
-            ))}
+          <textarea
+            className="answer-textarea"
+            placeholder="Type your answer here..."
+            value={answers[currentQ]}
+            onChange={(e) => handleAnswerChange(currentQ, e.target.value)}
+            disabled={submitted}
+          />
+          <div className="file-upload">
+            <input
+              type="file"
+              id="file-upload"
+              onChange={(e) => handleFileUpload(currentQ, e.target.files[0])}
+              disabled={submitted}
+            />
+            <label htmlFor="file-upload" className="file-upload-label">
+              Upload File (Text, PDF, Image)
+            </label>
+            {files[currentQ] && <p>Uploaded: {files[currentQ].name}</p>}
           </div>
           {!submitted && (
             <button className="next-submit-button" onClick={handleNextOrSubmit}>
               {currentQ === questions.length - 1
                 ? "Final Submit"
-                : answers[currentQ] !== null
-                ? "Submit"
                 : "Next"}
             </button>
           )}
@@ -131,4 +134,4 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
   );
 };
 
-export default MCQQuiz;
+export default ShortAnswer;
