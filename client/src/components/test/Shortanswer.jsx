@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios"; // Ensure axios is installed
 import "../styles/ShortAnswer.css";
 
 const ShortAnswer = ({ questions: initialQuestions = [] }) => {
   const [questions, setQuestions] = useState(initialQuestions);
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState(Array(questions.length).fill(""));
-  const [visited, setVisited] = useState(Array(questions.length).fill(false));
+  const [answers, setAnswers] = useState(Array(initialQuestions.length).fill(""));
+  const [visited, setVisited] = useState(Array(initialQuestions.length).fill(false));
   const [timeLeft, setTimeLeft] = useState(300); // 5-minute timer
   const [submitted, setSubmitted] = useState(false);
-  const [files, setFiles] = useState(Array(questions.length).fill(null));
+  const [files, setFiles] = useState(Array(initialQuestions.length).fill(null));
+  const [evaluation, setEvaluation] = useState(null); // Holds evaluation result from backend
+  const [evaluating, setEvaluating] = useState(false); // To show evaluating status
 
   useEffect(() => {
     console.log("Questions:", questions);
@@ -48,11 +51,31 @@ const ShortAnswer = ({ questions: initialQuestions = [] }) => {
     }
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     setSubmitted(true);
-    // Here you can handle the submission of answers and files
     console.log("Answers:", answers);
     console.log("Files:", files);
+
+    // Build payload including question text and correct answer.
+    const payload = questions.map((q, idx) => ({
+      questionId: q._id || q.id || idx,
+      question: q.question,
+      correctAnswer: q.correctAnswer,
+      answer: answers[idx],
+      file: files[idx] ? files[idx].name : null,
+    }));
+
+    try {
+      setEvaluating(true);
+      const response = await axios.post("http://localhost:5000/api/auth/evaluateShortAnswers", { answers: payload });
+      // Expected response: { overallScore: ..., evaluations: [ { questionId, score, remarks, metrics }, ... ] }
+      setEvaluation(response.data);
+      setEvaluating(false);
+    } catch (error) {
+      console.error("Evaluation error:", error);
+      setEvaluating(false);
+      // Optionally set an error state here.
+    }
   };
 
   const formatTime = (seconds) => {
@@ -96,7 +119,9 @@ const ShortAnswer = ({ questions: initialQuestions = [] }) => {
       <div className="main-content">
         <div className="timer">Time Left: {formatTime(timeLeft)}</div>
         <div className="question-block">
-          <h3>Question {currentQ + 1}: {questions[currentQ]?.question}</h3>
+          <h3>
+            Question {currentQ + 1}: {questions[currentQ]?.question}
+          </h3>
           <textarea
             className="answer-textarea"
             placeholder="Type your answer here..."
@@ -118,14 +143,45 @@ const ShortAnswer = ({ questions: initialQuestions = [] }) => {
           </div>
           {!submitted && (
             <button className="next-submit-button" onClick={handleNextOrSubmit}>
-              {currentQ === questions.length - 1
-                ? "Final Submit"
-                : "Next"}
+              {currentQ === questions.length - 1 ? "Final Submit" : "Next"}
             </button>
           )}
           {submitted && (
-            <div className="explanation">
-              <strong>Explanation:</strong> {questions[currentQ]?.explanation}
+            <div className="results">
+              {evaluating ? (
+                <p>Evaluating your answers, please wait...</p>
+              ) : evaluation ? (
+                <>
+                  <div className="score">
+                    <strong>Your Score:</strong> {evaluation.overallScore} / {questions.length}
+                  </div>
+                  {evaluation.evaluations.map((evalItem, idx) => (
+                    <div key={idx} className="evaluation-result">
+                      <h4>Question {idx + 1}:</h4>
+                      <p>
+                        <strong>Score:</strong> {evalItem.score}
+                      </p>
+                      <p>
+                        <strong>Remarks:</strong> {evalItem.remarks}
+                      </p>
+                      {evalItem.metrics && Object.keys(evalItem.metrics).length > 0 && (
+                        <div className="evaluation-metrics">
+                          <h5>Metrics:</h5>
+                          <ul>
+                            {Object.entries(evalItem.metrics).map(([param, value]) => (
+                              <li key={param}>
+                                <strong>{param.charAt(0).toUpperCase() + param.slice(1)}:</strong> {value}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p>No evaluation data available.</p>
+              )}
             </div>
           )}
         </div>
