@@ -5,7 +5,7 @@ import "./styles/Navbar.css";
 import darkmode from "../icons/dark.png";
 import lightmode from "../icons/light.png";
 import l from "../icons/user.png"; // Assuming user image is here
-import { Home, MessageCircle, ClipboardList, Info, Heart, PlusCircle } from 'lucide-react'; // Added PlusCircle for "Create Test"
+import { Home, MessageCircle, ClipboardList, Info, Heart, PlusCircle,BookOpenCheck } from 'lucide-react'; // Added PlusCircle for "Create Test"
 
 function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -60,6 +60,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     { id: 3, name: 'Test', icon: <ClipboardList /> },
     { id: 4, name: 'About Us', icon: <Info /> },
     { id: 5, name: 'Donate', icon: <Heart /> },
+     { id: 7, name: 'Self Evaluation', icon: <BookOpenCheck/>}
   ];
 
   const handleNavClick = (screen) => {

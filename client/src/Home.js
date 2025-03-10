@@ -1,7 +1,7 @@
 import React, { useState, useEffect, act } from "react";
 import Navbar from "./components/Navbar";
 import TestComponent from "./components/TestComponent";
-
+import SelfEvalution from "./components/SelfEvaluation";
 import "./Home.css";
 
 
@@ -12,10 +12,11 @@ function Home1({ user, setUser,saved,setSaved }) {
   const [activeScreen, setActiveScreen] = useState(savedScreen?parseInt(savedScreen):1);
   const [savedFolderLink, setSavedFolderLink] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [connectionStatus, setConnectionStatus] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
+  //const [connectionStatus, setConnectionStatus] = useState(true);
+ // const [isProcessing, setIsProcessing] = useState(false);
   useEffect(() => {
     localStorage.setItem("activeScreen", activeScreen);
+    
     activeScreen==3? openChat():closeChat();
   }, [activeScreen]);
   const body = document.body;
@@ -42,23 +43,10 @@ function Home1({ user, setUser,saved,setSaved }) {
     <div className="app">
       {/* Navbar */}
       <Navbar setActiveScreen={setActiveScreen} user={user} setUser={setUser} 
-      connectionStatus={connectionStatus} isProcessing={isProcessing}
+      
       isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode}
       />
-      {/* Start Screen */
-      <div className="start-screen-section">
-        {/* {activeScreen === 1 && <StartScreen  setActiveScreen={setActiveScreen} />}
-        {activeScreen === 2 && 
-        <DocumentModal activeScreen={activeScreen} 
-         savedFolderLink={savedFolderLink} 
-         setSavedFolderLink={setSavedFolderLink}
-         setConnectionStatus={setConnectionStatus}
-         isProcessing={isProcessing}
-         setIsProcessing={setIsProcessing}
-         />} */}
-        {/* {activeScreen === 4 && <AboutUs  isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode}/>}
-        {activeScreen === 3 && <ChatSection setActiveScreen={setActiveScreen}   messages={messages} setMessages={setMessages} />} */}
-      </ div>}
+     
      {/* Render only the selected screen */}
      {activeScreen === 1 && (
         <>
@@ -78,6 +66,11 @@ function Home1({ user, setUser,saved,setSaved }) {
             </ul>
           </div>
         </>
+      )}
+
+
+      {activeScreen === 7 && (
+        <SelfEvalution/>
       )}
     </div>
   );
