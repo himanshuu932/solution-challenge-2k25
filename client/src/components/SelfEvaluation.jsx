@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
 import "./styles/SelfEvaluation.css";
 
 export default function SelfEvaluation() {
@@ -36,31 +37,37 @@ export default function SelfEvaluation() {
       );
       // Mark the question as answered
       const newAnswers = [...answers];
-      newAnswers[selectedQuestionNumber - 1] = "answered"; // For simplicity, assume all answers are correct
+      newAnswers[selectedQuestionNumber - 1] = "answered";
       setAnswers(newAnswers);
     }, 2000);
   };
 
-  const handleChatSend = (e) => {
+  // Updated chat handler that calls the backend selfEvaluation controller.
+  const handleChatSend = async (e) => {
     e.preventDefault();
     const message = e.target.message.value;
     if (message.trim()) {
-      setChatMessages([...chatMessages, { text: message, sender: "user" }]);
+      // Append user message
+      setChatMessages((prev) => [...prev, { text: message, sender: "user" }]);
       e.target.reset();
-      setTimeout(() => {
+      try {
+        const response = await axios.post("http://localhost:5000/api/auth/selfEvaluation", { query: message });
+        const botResponse = response.data.answer;
+        setChatMessages((prev) => [...prev, { text: botResponse, sender: "bot" }]);
+      } catch (error) {
+        console.error("Error in chat:", error);
         setChatMessages((prev) => [
           ...prev,
-          { text: "Thank you for your message! How can I assist you further?", sender: "bot" },
+          { text: "Sorry, I couldn't process your query at this time.", sender: "bot" },
         ]);
-      }, 1000);
+      }
     }
   };
 
   return (
     <div className="container">
-      {/* Chat Section (Left - 25% width, 100% height) */}
+      {/* Chat Section (Right 25% width) */}
       <div className="right-section">
-        {/* Select Question Section (Top 50% height) */}
         <motion.div className="select-question-sidebar" initial={{ y: -50 }} animate={{ y: 0 }}>
           <div className="sidebar-title">Questions</div>
           <div className="question-nav">
@@ -89,53 +96,41 @@ export default function SelfEvaluation() {
           </div>
         </motion.div>
 
-        {/* Upload Answer Section (Bottom 50% height) */}
-        <motion.div
-  className="upload-section"
-  initial={{ y: 100, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ duration: 0.5 }}
->
-  <h2>Upload Answer</h2>
-  <textarea
-    className="textarea"
-    placeholder="Type your answer..."
-    value={answer}
-    onChange={(e) => setAnswer(e.target.value)}
-  />
-  <div className="file-upload-container">
-    <label htmlFor="file-upload" className="file-upload-label">
-      <span className="upload-icon">📁</span>
-      <span className="upload-text">Choose a file</span>
-      <input
-        id="file-upload"
-        type="file"
-        onChange={(e) => setImage(e.target.files[0])}
-        className="file-input"
-      />
-    </label>
-    {image && (
-      <motion.div
-        className="file-preview"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <span className="file-name">{image.name}</span>
-        <span className="file-remove" onClick={() => setImage(null)}>
-          🗑
-        </span>
-      </motion.div>
-    )}
-  </div>
-  <button onClick={submitAnswer} className="submit-btn">
-    Submit Answer
-  </button>
-</motion.div>
+        <motion.div className="upload-section" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
+          <h2>Upload Answer</h2>
+          <textarea
+            className="textarea"
+            placeholder="Type your answer..."
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+          />
+          <div className="file-upload-container">
+            <label htmlFor="file-upload" className="file-upload-label">
+              <span className="upload-icon">📁</span>
+              <span className="upload-text">Choose a file</span>
+              <input
+                id="file-upload"
+                type="file"
+                onChange={(e) => setImage(e.target.files[0])}
+                className="file-input"
+              />
+            </label>
+            {image && (
+              <motion.div className="file-preview" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
+                <span className="file-name">{image.name}</span>
+                <span className="file-remove" onClick={() => setImage(null)}>
+                  🗑
+                </span>
+              </motion.div>
+            )}
+          </div>
+          <button onClick={submitAnswer} className="submit-btn">
+            Submit Answer
+          </button>
+        </motion.div>
       </div>
 
-
-      {/* Question and Feedback Section (Middle - 50% width, 100% height) */}
+      {/* Question and Feedback Section (Middle 50% width) */}
       <motion.div className="question-feedback-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h2>Question and Feedback</h2>
         <div className="card">
@@ -144,35 +139,29 @@ export default function SelfEvaluation() {
         </div>
       </motion.div>
 
-      {/* Right Section (25% width, 100% height) */}
-      <motion.div
-  className="chat-section"
-  initial={{ x: -100, opacity: 0 }}
-  animate={{ x: 0, opacity: 1 }}
-  transition={{ duration: 0.5 }}
->
-  <h2>Chat with Bot</h2>
-  <div className="chat-window">
-    {chatMessages.map((msg, index) => (
-      <motion.div
-        key={index}
-        className={`chat-message ${msg.sender}`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: index * 0.1 }}
-      >
-        {msg.text}
+      {/* Chat Section (Left 25% width) */}
+      <motion.div className="chat-section" initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
+        <h2>Chat with Bot</h2>
+        <div className="chat-window">
+          {chatMessages.map((msg, index) => (
+            <motion.div
+              key={index}
+              className={`chat-message ${msg.sender}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              {msg.text}
+            </motion.div>
+          ))}
+        </div>
+        <form onSubmit={handleChatSend} className="chat-input">
+          <input type="text" name="message" placeholder="Type a message..." required />
+          <button type="submit" className="send-btn">
+            Send
+          </button>
+        </form>
       </motion.div>
-    ))}
-  </div>
-  <form onSubmit={handleChatSend} className="chat-input">
-    <input type="text" name="message" placeholder="Type a message..." required />
-    <button type="submit" className="send-btn">
-      Send
-    </button>
-  </form>
-</motion.div>
-
     </div>
   );
 }
