@@ -8,8 +8,8 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
   const [visited, setVisited] = useState(Array(questions.length).fill(false));
   const [timeLeft, setTimeLeft] = useState(300); // 5-minute timer
   const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState(0);
 
-  // Log the questions to verify the data structure
   useEffect(() => {
     console.log("Questions:", questions);
   }, [questions]);
@@ -43,6 +43,17 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
 
   const handleFinalSubmit = () => {
     setSubmitted(true);
+    calculateScore();
+  };
+
+  const calculateScore = () => {
+    let correctAnswers = 0;
+    answers.forEach((answer, index) => {
+      if (questions[index].options[answer]?.label === questions[index].correctAnswer) {
+        correctAnswers++;
+      }
+    });
+    setScore(correctAnswers);
   };
 
   const formatTime = (seconds) => {
@@ -63,7 +74,7 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
                 submitted
                   ? answers[idx] === null
                     ? "not-answered"
-                    : answers[idx] === q.correct
+                    : questions[idx].options[answers[idx]]?.label === questions[idx].correctAnswer
                     ? "correct"
                     : "incorrect"
                   : answers[idx] !== null
@@ -88,7 +99,6 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
       <div className="main-content">
         <div className="timer">Time Left: {formatTime(timeLeft)}</div>
         <div className="question-block">
-          {/* Render the question text using the `question` property */}
           <h3>Question {currentQ + 1}: {questions[currentQ]?.question}</h3>
           <div className="options-container">
             {questions[currentQ]?.options.map((opt, idx) => (
@@ -96,7 +106,7 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
                 key={idx}
                 className={`option-button ${
                   submitted
-                    ? idx === questions[currentQ].correct
+                    ? opt.label === questions[currentQ].correctAnswer
                       ? "correct"
                       : answers[currentQ] === idx
                       ? "incorrect"
@@ -107,7 +117,7 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
                 }`}
                 onClick={() => handleOptionClick(currentQ, idx)}
               >
-                {opt.text} {/* Render the `text` property of the option object */}
+                {opt.text}
               </button>
             ))}
           </div>
@@ -121,8 +131,46 @@ const MCQQuiz = ({ questions: initialQuestions = [] }) => {
             </button>
           )}
           {submitted && (
-            <div className="explanation">
-              <strong>Explanation:</strong> {questions[currentQ]?.explanation}
+            <div className="results">
+              <div className="score">
+                <strong>Your Score:</strong> {score} / {questions.length}
+              </div>
+              {questions.map((q, idx) => (
+                <div key={idx} className="question-result">
+                  <h4>Question {idx + 1}: {q.question}</h4>
+                  <div className="options-result">
+                    {q.options.map((opt, oIdx) => (
+                      <div
+                        key={oIdx}
+                        className={`option-result ${
+                          opt.label === q.correctAnswer
+                            ? "correct"
+                            : answers[idx] === oIdx
+                            ? "incorrect"
+                            : ""
+                        }`}
+                      >
+                        {opt.text}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="explanation">
+  <strong>Explanation:</strong>
+  {q.explanation && typeof q.explanation === "object" ? (
+    <ul>
+      {Object.entries(q.explanation).map(([key, value]) => (
+         <li key={key}>
+           <strong>{key.toUpperCase()}:</strong> {value}
+         </li>
+      ))}
+    </ul>
+  ) : (
+    q.explanation
+  )}
+</div>
+
+                </div>
+              ))}
             </div>
           )}
         </div>

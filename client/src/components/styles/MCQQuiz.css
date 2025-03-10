@@ -152,14 +152,51 @@
   .next-submit-button:hover {
     background-color: #1976D2;
   }
+
+
+  .results {
+    margin-top: 20px;
+  }
+  
+  .score {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+  
+  .question-result {
+    margin-bottom: 20px;
+  }
+  
+  .options-result {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .option-result {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+  
+  .option-result.correct {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+  
+  .option-result.incorrect {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
   
   .explanation {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f9fbe7;
-    border-left: 5px solid #cddc39;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
     border-radius: 5px;
-    font-size: 0.95rem;
+    border: 1px solid #ddd;
   }
   
   @media (max-width: 768px) {
