@@ -41,15 +41,7 @@ const TestComponent = () => {
 
   const handleTestClick = (test) => {
     setSelectedTest(test);
-
-    // If the test type is "multiple-choice", directly start the MCQ quiz
-    if (test.type === "multiple-choice") {
-      setStartTest(true); // Start the MCQ quiz
-    }  else if (test.type === "short-answer" || test.type === "long-answer") {
-      setStartTest(true); // Start the ShortAnswer component
-    } else {
-      setStartTest(false); // Show the test selection screen for other types
-    }
+    setStartTest(true);
   };
 
   const handleStartTest = () => {
@@ -65,20 +57,6 @@ const TestComponent = () => {
 
   return (
     <div className="test-dashboard">
-      <aside className="sidebar">
-        <h3>Badges Earned</h3>
-        <div className="badges-container">
-          {badges.map((badge, index) => (
-            <div key={index} className="badge-card">
-              {badge.icon}
-              <div>
-                <h4>{badge.name}</h4>
-                <p>{badge.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </aside>
 
       <main className="test-main">
         <header className="test-header">
@@ -124,27 +102,16 @@ const TestComponent = () => {
                   </div>
                   <span className="progress-text">{test.progress || 0}%</span>
                 </div>
-                <button className={`test-btn ${test.status || "pending"}`}>{test.status || "Pending"}</button> {/* Add status field to your database if needed */}
+                <button className={`test-btn ${test.status || "pending"}`}>{test.status || "Pending"}</button>
+                <button className={`test-btn start}`} onClick={()=>{handleStartTest()}}>Start</button> {/* Add status field to your database if needed */}
               </div>
             ))}
           </section>
         )}
 
-        {selectedTest && !startTest && selectedTest.type !== "multiple-choice" && (
-          <TestSelection
-            difficulty={difficulty}
-            setDifficulty={setDifficulty}
-            startTest={handleStartTest}
-          />
-        )}
+      
 
-        {startTest && selectedTest && selectedTest.type === "multiple-choice" && (
-          <MCQQuiz questions={selectedTest.questions} /> 
-        )}
-
-        {startTest && selectedTest && (selectedTest.type === "short-answer" || selectedTest.type === "long-answer") && (
-          <ShortAnswer questions={selectedTest.questions} />
-        )}
+     
       </main>
     </div>
   );
