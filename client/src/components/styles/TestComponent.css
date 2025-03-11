@@ -268,3 +268,19 @@
   flex: 1;
   margin-top: 20px;
 }
+/* Filter Options Panel */
+.filter-options {
+  display: flex;
+  gap: 10px;
+  padding: 10px 20px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.filter-options select {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+}
