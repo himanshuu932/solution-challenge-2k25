@@ -31,8 +31,6 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
     }
   }, [timeLeft, submitted]);
 
-  // Removed auto-submission when all questions answered
-
   const handleOptionClick = (qIndex, oIndex) => {
     if (submitted) return;
     const updatedAnswers = [...answers];
@@ -54,7 +52,6 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
     setSubmitted(true);
     calculateScore();
     setCurrentReview(0);
-    // Timer stops automatically because the timer effect no longer runs when submitted is true.
   };
 
   const calculateScore = () => {
@@ -74,14 +71,14 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
   };
 
   return (
-    <div className="quiz-container">
-      <div className="sidebar">
-        <div className="sidebar-title">Questions</div>
-        <div className="question-nav">
+    <div className="mcq-quiz-container">
+      <div className="mcq-sidebar">
+        <div className="mcq-sidebar-title">Questions</div>
+        <div className="mcq-question-nav">
           {questions.map((q, idx) => (
             <div
               key={idx}
-              className={`question-box ${
+              className={`mcq-question-box ${
                 submitted
                   ? answers[idx] === null
                     ? "not-answered"
@@ -93,7 +90,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
                   : visited[idx]
                   ? "visited"
                   : "not-visited"
-              }`}
+              } ${currentQ === idx ? "active" : ""}`}
               onClick={() => {
                 if (!submitted) {
                   setCurrentQ(idx);
@@ -106,37 +103,37 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
             </div>
           ))}
         </div>
-        <div className="status-bar">
+        <div className="mcq-status-bar">
           <p>Answered: {answers.filter((a) => a !== null).length}</p>
           <p>Not Answered: {answers.filter((a) => a === null).length}</p>
           <p>Visited: {visited.filter((v) => v).length}</p>
         </div>
-        <div className="end-test-container">
+        <div className="mcq-end-test-container">
           {!submitted && (
-            <button className="end-test-button" onClick={handleFinalSubmit}>
+            <button className="mcq-end-test-button" onClick={handleFinalSubmit}>
               End Test
             </button>
           )}
           {submitted && (
-            <button className="end-test-button" onClick={() => setStartTest(false)}>
+            <button className="mcq-end-test-button close" onClick={() => setStartTest(false)}>
               Close Test
             </button>
           )}
         </div>
       </div>
 
-      <div className="main-content">
-        <div className="timer">Time Left: {formatTime(timeLeft)}</div>
+      <div className="mcq-main-content">
+        <div className="mcq-timer">Time Left: {formatTime(timeLeft)}</div>
         {!submitted ? (
-          <div className="question-block">
+          <div className="mcq-question-block">
             <h3>
               Question {currentQ + 1}: {questions[currentQ]?.question}
             </h3>
-            <div className="options-container">
+            <div className="mcq-options-container">
               {questions[currentQ]?.options.map((opt, idx) => (
                 <button
                   key={idx}
-                  className={`option-button ${answers[currentQ] === idx ? "selected" : ""}`}
+                  className={`mcq-option-button ${answers[currentQ] === idx ? "selected" : ""}`}
                   onClick={() => handleOptionClick(currentQ, idx)}
                 >
                   {opt.text}
@@ -144,7 +141,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
               ))}
             </div>
             <button
-              className="next-submit-button"
+              className="mcq-next-submit-button"
               onClick={() => {
                 if (currentQ === questions.length - 1) {
                   handleFinalSubmit();
@@ -157,19 +154,19 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
             </button>
           </div>
         ) : (
-          <div className="results">
-            <div className="score">
+          <div className="mcq-results">
+            <div className="mcq-score">
               <strong>Your Score:</strong> {score} / {questions.length}
             </div>
-            <div className="question-result">
+            <div className="mcq-question-result">
               <h4>
                 Question {currentReview + 1}: {questions[currentReview].question}
               </h4>
-              <div className="options-result">
+              <div className="mcq-options-result">
                 {questions[currentReview].options.map((opt, oIdx) => (
                   <div
                     key={oIdx}
-                    className={`option-result ${
+                    className={`mcq-option-result ${
                       opt.label === questions[currentReview].correctAnswer
                         ? "correct"
                         : answers[currentReview] === oIdx
@@ -181,7 +178,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
                   </div>
                 ))}
               </div>
-              <div className="explanation">
+              <div className="mcq-explanation">
                 <strong>Explanation:</strong>{" "}
                 {questions[currentReview].explanation &&
                 typeof questions[currentReview].explanation === "object" ? (
@@ -197,7 +194,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
                 )}
               </div>
             </div>
-            <div className="navigation-buttons">
+            <div className="mcq-navigation-buttons">
               <button onClick={() => setCurrentReview((prev) => prev - 1)} disabled={currentReview === 0}>
                 Previous
               </button>

@@ -10,28 +10,37 @@
   overflow: hidden;
 }
 
-/* Default test main view */
+/* Main scrollable area */
 .test-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  /* Remove overflow-y here since the unified container will handle scrolling */
+}
+
+/* Unified container for header and cards with its own scrolling */
+.assessment-container {
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
 }
 
-.test-header {
+/* Adjusted sticky header for merged container */
+.assessment-container .test-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
   padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e7eb;
+  margin: 0;
   position: sticky;
   top: 0;
-  z-index: 1;
+  background: white;
+  z-index: 10;
 }
 
+/* Search & filter styles */
 .search-filter-container {
   display: flex;
   align-items: center;
@@ -73,6 +82,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
+  padding: 20px;
 }
 
 .test-card {
@@ -83,6 +93,12 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.test-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 
 .test-header-card h3 {
@@ -128,7 +144,15 @@
   color: #374151;
 }
 
-.test-btn {
+/* Test Action Buttons styled to span full width */
+.test-actions {
+  display: flex;
+  width: 100%;
+}
+
+.test-actions .test-btn {
+  flex: 1;
+  margin: 0 5px;
   padding: 10px;
   border-radius: 10px;
   font-size: 14px;
@@ -137,6 +161,16 @@
   border: none;
 }
 
+/* Remove extra margin on first and last buttons */
+.test-actions .test-btn:first-child {
+  margin-left: 0;
+}
+
+.test-actions .test-btn:last-child {
+  margin-right: 0;
+}
+
+/* Status based button colors */
 .pending {
   background: #facc15;
   color: #78350f;
@@ -148,6 +182,12 @@
 }
 
 .recommended {
+  background: #3b82f6;
+  color: white;
+}
+
+/* Additional style for the "start" button if needed */
+.start {
   background: #3b82f6;
   color: white;
 }

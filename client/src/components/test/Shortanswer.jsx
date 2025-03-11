@@ -65,15 +65,20 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [] }) => {
     setSubmitted(true);
     console.log("Answers:", answers);
     console.log("Files:", files);
-
+  
+    // Mark empty answers as wrong
+    const updatedAnswers = answers.map((answer) => {
+      return answer.trim() === "" ? "Incorrect" : answer; // Mark empty answers as "Incorrect"
+    });
+  
     const payload = questions.map((q, idx) => ({
       questionId: q._id || q.id || idx,
       question: q.question,
       correctAnswer: q.correctAnswer,
-      answer: answers[idx],
+      answer: updatedAnswers[idx],
       file: files[idx] ? files[idx].name : null,
     }));
-
+  
     try {
       setEvaluating(true);
       const response = await axios.post("http://localhost:5000/api/auth/evaluateShortAnswers", { answers: payload });
@@ -87,6 +92,7 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [] }) => {
       // Optionally, set an error state here.
     }
   };
+  
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, "0");
@@ -99,6 +105,8 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [] }) => {
       {/* Sidebar with question navigation and end/close test buttons */}
       <div className="sidebar">
         <div className="sidebar-title">Questions</div>
+        <div className="timer">Time Left: {formatTime(timeLeft)}</div>
+     
         <div className="question-nav">
           {questions.map((q, idx) => (
             <div
@@ -136,12 +144,12 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [] }) => {
             </button>
           )}
         </div>
+        
       </div>
 
       {/* Main content area: timer, questions, and results */}
       <div className="main-content">
-        <div className="timer">Time Left: {formatTime(timeLeft)}</div>
-        {!submitted ? (
+          {!submitted ? (
           <div className="question-block">
             <h3>
               Question {currentQ + 1}: {questions[currentQ]?.question}
