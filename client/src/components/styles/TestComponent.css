@@ -1,3 +1,4 @@
+/* Overall Dashboard */
 .test-dashboard {
   display: flex;
   height: 100vh;
@@ -5,42 +6,17 @@
   font-family: 'Poppins', sans-serif;
   padding: 20px;
   gap: 20px;
-  padding-top: 80px; /* Adjust to prevent navbar collision */
-  overflow: hidden; /* Prevent double scrollbars */
+  padding-top: 80px; /* Prevent navbar collision */
+  overflow: hidden;
 }
 
-.sidebar {
-  width: 280px;
-  background-color: white;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow-y: auto; /* Make sidebar scrollable */
-}
-
-.badges-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.badge-card {
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
-  color: white;
-  padding: 15px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
+/* Default test main view */
 .test-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  overflow-y: auto; /* Make main content scrollable */
+  overflow-y: auto;
 }
 
 .test-header {
@@ -92,6 +68,7 @@
   cursor: pointer;
 }
 
+/* Test Grid Cards */
 .test-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -120,7 +97,8 @@
 
 .test-info {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
   font-size: 14px;
   color: #6b7280;
 }
@@ -174,104 +152,79 @@
   color: white;
 }
 
-/* New Styles for Question Generator */
-.question-generator-wrapper {
-  background: white;
+/* Active Test View Layout */
+.test-view-container {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 280px;
+  background-color: white;
   padding: 20px;
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
+  overflow-y: auto;
 }
 
-.question-generator-container {
+.sidebar-header h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #333;
+}
+
+.tests-sidebar-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.question-generator-container .title {
-  font-size: 20px;
-  color: #333;
-  margin-bottom: 10px;
+.sidebar-test-card {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.input-group {
+.sidebar-test-card:hover,
+.sidebar-test-card.active {
+  background: #e5e7eb;
+}
+
+/* Test Content area */
+.test-content {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
+  overflow-y: auto;
 }
 
-.input-group input,
-.input-group select {
-  padding: 10px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 14px;
-  outline: none;
+.test-header-view {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
 }
 
-.generate-btn {
+.timer-display {
   background: #3b82f6;
   color: white;
-  padding: 10px 15px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: bold;
 }
 
-.generate-btn:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-.error-message {
-  color: #ef4444;
-  font-size: 14px;
-  text-align: center;
-}
-
-.questions-list {
+.test-body {
+  flex: 1;
   margin-top: 20px;
-  max-height: 400px; /* Limit height and make it scrollable */
-  overflow-y: auto; /* Make questions list scrollable */
-}
-
-.question-card {
-  background: #f9fafb;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 15px;
-}
-
-.question-card h3 {
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.options-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.options-list li {
-  font-size: 14px;
-  color: #4b5563;
-  margin-bottom: 5px;
-}
-
-.correct-answer,
-.explanation,
-.metadata {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #4b5563;
-}
-
-.correct-answer strong,
-.explanation strong,
-.metadata strong {
-  color: #333;
 }

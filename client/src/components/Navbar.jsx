@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import TestComponent from "./test/TestComponent";
+import TestComponent from "./TestComponent";
 import TestCreator from "./TestCreator";
 import "./styles/Navbar.css";
 import darkmode from "../icons/dark.png";

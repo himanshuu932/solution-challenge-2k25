@@ -1,6 +1,6 @@
 import React, { useState, useEffect, act } from "react";
 import Navbar from "./components/Navbar";
-import TestComponent from "./components/test/TestComponent";
+import TestComponent from "./components/TestComponent";
 import SelfEvalution from "./components/SelfEvaluation";
 import "./Home.css";
 
