@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar";
 import TestComponent from "./components/TestComponent";
 import SelfEvalution from "./components/SelfEvaluation";
 import "./Home.css";
-
+import BookDonationPage from "./components/BookDonation";
 
 function Home1({ user, setUser,saved,setSaved }) {
   // Check localStorage for the saved activeScreen value or default to 1
@@ -71,6 +71,9 @@ function Home1({ user, setUser,saved,setSaved }) {
 
       {activeScreen === 7 && (
         <SelfEvalution/>
+      )}
+      {activeScreen === 5 && (
+        <BookDonationPage/>
       )}
     </div>
   );

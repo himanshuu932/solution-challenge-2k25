@@ -1,10 +1,10 @@
 import React, { useState ,useEffect} from 'react';
 import axios from 'axios';
 import Home from './Home';
-
+const bg=require('./icons/Login.png');
 
 // Login Form Component
-const LoginForm = ({ onSuccess,setUser }) => {
+const LoginForm = ({ onSuccess, setUser }) => {
   const [message, setMessage] = useState({ text: '', type: '' });
 
   const handleLogin = async (e) => {
@@ -37,16 +37,24 @@ const LoginForm = ({ onSuccess,setUser }) => {
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <input type="email" name="email" placeholder="Email" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-      {message.text && (
-        <p className="message" style={{ color: message.type === 'success' ? 'green' : 'red' }}>
-          {message.text}
-        </p>
-      )}
-    </form>
+
+    <form 
+    onSubmit={handleLogin} 
+   
+  >
+    <input type="email" name="email" placeholder="Email" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+    {message.text && (
+      <p style={{ color: message.type === 'success' ? 'green' : 'red' }}>
+        {message.text}
+      </p>
+    )}
+  </form>
+  
+
+    
+    
   );
 };
 
@@ -141,7 +149,18 @@ const Auth = ({user,setUser}) => {
   }
 
   // Otherwise, show the authentication forms
-  return (<>
+  return (    <div style={{
+    backgroundImage: `url(${bg})`,
+    backgroundSize: "cover", // Ensures full coverage while maintaining aspect ratio
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    height: "100vh",
+    width: "100vw",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden" // Ensures no unwanted scrollbars
+  }}>
     { !isLoggedIn && <div className="auth-container">
       <div className="auth-box">
         <h2>{isLogin ? 'Login' : 'Signup'}</h2>
@@ -155,7 +174,7 @@ const Auth = ({user,setUser}) => {
           <span
             onClick={() => setIsLogin(!isLogin)}
             className="toggle-btn"
-            style={{ cursor: 'pointer', color: 'blue' }}
+            style={{ cursor: 'pointer', color: '#b39040' }}
           >
             {isLogin ? 'Signup' : 'Login'}
           </span>
@@ -163,7 +182,7 @@ const Auth = ({user,setUser}) => {
       </div>
      
     </div> }
-    </>
+    </div>
   );
 };
 
