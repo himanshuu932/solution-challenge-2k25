@@ -4,6 +4,7 @@ import SelfEvaluation from "./components/SelfEvaluation";
 import "./Home.css";
 import BookDonationPage from "./components/BookDonation";
 import DiscussionSection from "./components/Discussion";
+import AboutUs from "./components/AboutUs";
 import { jwtDecode } from 'jwt-decode';
 function Home1({ user, setUser }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -103,8 +104,10 @@ function Home1({ user, setUser }) {
       )}
 
       {activeScreen === 2 && <DiscussionSection />}
-      {activeScreen === 7 && <SelfEvaluation />}
+      {activeScreen === 4 && <AboutUs />}
       {activeScreen === 5 && <BookDonationPage />}
+      {activeScreen === 7 && <SelfEvaluation />}
+  
     </div>
   );
 }
