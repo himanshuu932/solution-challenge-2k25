@@ -1,37 +1,49 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {jwtDecode} from "jwt-decode";
 import "../styles/MCQQuiz.css";
 
-const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
+const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSubmit }) => {
   const [questions, setQuestions] = useState(initialQuestions);
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState(Array(initialQuestions.length).fill(null));
   const [visited, setVisited] = useState(Array(initialQuestions.length).fill(false));
-  const [timeLeft, setTimeLeft] = useState(15); // For demonstration, 15 seconds (adjust as needed)
+  const [timeLeft, setTimeLeft] = useState(15); // seconds for demo
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [currentReview, setCurrentReview] = useState(0);
+
+  // Get user id from token stored in localStorage
+  let userId = null;
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      userId = decoded.id;
+    } catch (err) {
+      console.error("Error decoding token", err);
+    }
+  }
 
   useEffect(() => {
     console.log("Questions:", questions);
   }, [questions]);
 
-  // Timer effect: decrement timeLeft every second until 0.
+  // Countdown timer effect
   useEffect(() => {
     if (submitted || timeLeft === 0) return;
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
   }, [timeLeft, submitted]);
 
-  // Auto-submit the test when time runs out.
+  // Auto-submit when time runs out
   useEffect(() => {
     if (timeLeft === 0 && !submitted) {
       handleFinalSubmit();
     }
   }, [timeLeft, submitted]);
-
-  // Removed auto-submission when all questions answered
 
   const handleOptionClick = (qIndex, oIndex) => {
     if (submitted) return;
@@ -50,11 +62,26 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
     }
   };
 
-  const handleFinalSubmit = () => {
+  // When the test is submitted, calculate score and update test details for the user
+  const handleFinalSubmit = async () => {
     setSubmitted(true);
-    calculateScore();
+    const calculatedScore = calculateScore();
+    setScore(calculatedScore);
     setCurrentReview(0);
-    // Timer stops automatically because the timer effect no longer runs when submitted is true.
+
+    try {
+      await axios.post("/api/auth/test-details", {
+        userId,
+        testId,
+        status: "attempted",
+        score: calculatedScore,
+        attemptedAt: new Date(),
+      });
+    } catch (error) {
+      console.error("Error updating test details", error);
+    }
+    
+    if (onSubmit) onSubmit(calculatedScore);
   };
 
   const calculateScore = () => {
@@ -64,7 +91,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
         correctAnswers++;
       }
     });
-    setScore(correctAnswers);
+    return correctAnswers;
   };
 
   const formatTime = (seconds) => {
@@ -74,14 +101,15 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
   };
 
   return (
-    <div className="quiz-container">
-      <div className="sidebar">
-        <div className="sidebar-title">Questions</div>
-        <div className="question-nav">
+    <div className="mcq-quiz-container">
+      {/* Sidebar and navigation (omitted for brevity) */}
+      <div className="mcq-sidebar">
+        <div className="mcq-sidebar-title">Questions</div>
+        <div className="mcq-question-nav">
           {questions.map((q, idx) => (
             <div
               key={idx}
-              className={`question-box ${
+              className={`mcq-question-box ${
                 submitted
                   ? answers[idx] === null
                     ? "not-answered"
@@ -93,7 +121,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
                   : visited[idx]
                   ? "visited"
                   : "not-visited"
-              }`}
+              } ${currentQ === idx ? "active" : ""}`}
               onClick={() => {
                 if (!submitted) {
                   setCurrentQ(idx);
@@ -106,37 +134,36 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
             </div>
           ))}
         </div>
-        <div className="status-bar">
+        <div className="mcq-status-bar">
           <p>Answered: {answers.filter((a) => a !== null).length}</p>
           <p>Not Answered: {answers.filter((a) => a === null).length}</p>
           <p>Visited: {visited.filter((v) => v).length}</p>
         </div>
-        <div className="end-test-container">
+        <div className="mcq-end-test-container">
           {!submitted && (
-            <button className="end-test-button" onClick={handleFinalSubmit}>
+            <button className="mcq-end-test-button" onClick={handleFinalSubmit}>
               End Test
             </button>
           )}
           {submitted && (
-            <button className="end-test-button" onClick={() => setStartTest(false)}>
+            <button className="mcq-end-test-button close" onClick={() => setStartTest(false)}>
               Close Test
             </button>
           )}
         </div>
       </div>
-
-      <div className="main-content">
-        <div className="timer">Time Left: {formatTime(timeLeft)}</div>
+      <div className="mcq-main-content">
+        <div className="mcq-timer">Time Left: {formatTime(timeLeft)}</div>
         {!submitted ? (
-          <div className="question-block">
+          <div className="mcq-question-block">
             <h3>
               Question {currentQ + 1}: {questions[currentQ]?.question}
             </h3>
-            <div className="options-container">
+            <div className="mcq-options-container">
               {questions[currentQ]?.options.map((opt, idx) => (
                 <button
                   key={idx}
-                  className={`option-button ${answers[currentQ] === idx ? "selected" : ""}`}
+                  className={`mcq-option-button ${answers[currentQ] === idx ? "selected" : ""}`}
                   onClick={() => handleOptionClick(currentQ, idx)}
                 >
                   {opt.text}
@@ -144,7 +171,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
               ))}
             </div>
             <button
-              className="next-submit-button"
+              className="mcq-next-submit-button"
               onClick={() => {
                 if (currentQ === questions.length - 1) {
                   handleFinalSubmit();
@@ -157,58 +184,58 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [] }) => {
             </button>
           </div>
         ) : (
-          <div className="results">
-            <div className="score">
-              <strong>Your Score:</strong> {score} / {questions.length}
+          <div className="mcq-results">
+          <div className="mcq-score">
+            <strong>Your Score:</strong> {score} / {questions.length}
+          </div>
+          <div className="mcq-question-result">
+            <h4>
+              Question {currentReview + 1}: {questions[currentReview].question}
+            </h4>
+            <div className="mcq-options-result">
+              {questions[currentReview].options.map((opt, oIdx) => (
+                <div
+                  key={oIdx}
+                  className={`mcq-option-result ${
+                    opt.label === questions[currentReview].correctAnswer
+                      ? "correct"
+                      : answers[currentReview] === oIdx
+                      ? "incorrect"
+                      : ""
+                  }`}
+                >
+                  {opt.text}
+                </div>
+              ))}
             </div>
-            <div className="question-result">
-              <h4>
-                Question {currentReview + 1}: {questions[currentReview].question}
-              </h4>
-              <div className="options-result">
-                {questions[currentReview].options.map((opt, oIdx) => (
-                  <div
-                    key={oIdx}
-                    className={`option-result ${
-                      opt.label === questions[currentReview].correctAnswer
-                        ? "correct"
-                        : answers[currentReview] === oIdx
-                        ? "incorrect"
-                        : ""
-                    }`}
-                  >
-                    {opt.text}
-                  </div>
-                ))}
-              </div>
-              <div className="explanation">
-                <strong>Explanation:</strong>{" "}
-                {questions[currentReview].explanation &&
-                typeof questions[currentReview].explanation === "object" ? (
-                  <ul>
-                    {Object.entries(questions[currentReview].explanation).map(([key, value]) => (
-                      <li key={key}>
-                        <strong>{key.toUpperCase()}:</strong> {value}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  questions[currentReview].explanation
-                )}
-              </div>
-            </div>
-            <div className="navigation-buttons">
-              <button onClick={() => setCurrentReview((prev) => prev - 1)} disabled={currentReview === 0}>
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentReview((prev) => prev + 1)}
-                disabled={currentReview === questions.length - 1}
-              >
-                Next
-              </button>
+            <div className="mcq-explanation">
+              <strong>Explanation:</strong>{" "}
+              {questions[currentReview].explanation &&
+              typeof questions[currentReview].explanation === "object" ? (
+                <ul>
+                  {Object.entries(questions[currentReview].explanation).map(([key, value]) => (
+                    <li key={key}>
+                      <strong>{key.toUpperCase()}:</strong> {value}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                questions[currentReview].explanation
+              )}
             </div>
           </div>
+          <div className="mcq-navigation-buttons">
+            <button onClick={() => setCurrentReview((prev) => prev - 1)} disabled={currentReview === 0}>
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentReview((prev) => prev + 1)}
+              disabled={currentReview === questions.length - 1}
+            >
+              Next
+            </button>
+          </div>
+        </div>
         )}
       </div>
     </div>
