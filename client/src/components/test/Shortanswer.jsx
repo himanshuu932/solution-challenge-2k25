@@ -65,15 +65,20 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [] }) => {
     setSubmitted(true);
     console.log("Answers:", answers);
     console.log("Files:", files);
-
+  
+    // Mark empty answers as wrong
+    const updatedAnswers = answers.map((answer) => {
+      return answer.trim() === "" ? "Incorrect" : answer; // Mark empty answers as "Incorrect"
+    });
+  
     const payload = questions.map((q, idx) => ({
       questionId: q._id || q.id || idx,
       question: q.question,
       correctAnswer: q.correctAnswer,
-      answer: answers[idx],
+      answer: updatedAnswers[idx],
       file: files[idx] ? files[idx].name : null,
     }));
-
+  
     try {
       setEvaluating(true);
       const response = await axios.post("http://localhost:5000/api/auth/evaluateShortAnswers", { answers: payload });

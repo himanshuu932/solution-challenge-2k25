@@ -404,3 +404,87 @@ body {
     transform: translateY(-3px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
+  /* Formatted Formula Box */
+.formula-section {
+  background-color: #eef2ff;
+  padding: 10px;
+  border-left: 5px solid #6366f1;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+/* Code Snippet Box */
+.code-section {
+  background-color: #f9fafb;
+  padding: 10px;
+  border-left: 5px solid #facc15;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+  .formula-block {
+    text-align: center;
+    font-size: 18px;
+    margin: 10px 0;
+  }
+  
+  .image-section {
+    background-color: #f3f4f6;
+    padding: 10px;
+    border-left: 5px solid #22c55e;
+    border-radius: 5px;
+    margin-top: 10px;
+  }
+  
+  .image-section img {
+    max-width: 100%;
+    border-radius: 10px;
+  }
+  
+  .code-block {
+    margin-top: 10px;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    padding: 10px;
+    overflow-x: auto;
+  }
+  
+  .code-block button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .code-block button:hover {
+    background-color: #0056b3;
+  }
+  
+  .link-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .link-section h4 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+  
+  .link-section a {
+    display: block;
+    margin-top: 10px;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .link-section a:hover {
+    text-decoration: underline;
+  }

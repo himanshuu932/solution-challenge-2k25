@@ -2,6 +2,11 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import "./styles/SelfEvaluation.css";
+import Latex from 'react-latex';// For rendering LaTeX formulas
+import "katex/dist/katex.min.css"; // Import KaTeX CSS
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { darcula } from "react-syntax-highlighter/dist/esm/styles/prism";
+
 
 export default function SelfEvaluation() {
   const [question, setQuestion] = useState("Select a question");
@@ -10,8 +15,8 @@ export default function SelfEvaluation() {
   const [image, setImage] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [selectedQuestionNumber, setSelectedQuestionNumber] = useState(1);
-  const [visited, setVisited] = useState(Array(4).fill(false)); // Track visited questions
-  const [answers, setAnswers] = useState(Array(4).fill(null)); // Track answers
+  const [visited, setVisited] = useState(Array(4).fill(false));
+  const [answers, setAnswers] = useState(Array(4).fill(null));
 
   const questions = [
     "Explain SDG4 in one sentence?",
@@ -23,7 +28,6 @@ export default function SelfEvaluation() {
   const generateQuestion = () => {
     setQuestion(questions[selectedQuestionNumber - 1]);
     setFeedback("");
-    // Mark the question as visited
     const newVisited = [...visited];
     newVisited[selectedQuestionNumber - 1] = true;
     setVisited(newVisited);
@@ -35,25 +39,31 @@ export default function SelfEvaluation() {
       setFeedback(
         "Great attempt! Try to elaborate more on key points.\nIdeal answer: SDG4 focuses on ensuring inclusive and equitable quality education."
       );
-      // Mark the question as answered
       const newAnswers = [...answers];
       newAnswers[selectedQuestionNumber - 1] = "answered";
       setAnswers(newAnswers);
     }, 2000);
   };
 
-  // Updated chat handler that calls the backend selfEvaluation controller.
   const handleChatSend = async (e) => {
     e.preventDefault();
     const message = e.target.message.value;
     if (message.trim()) {
-      // Append user message
       setChatMessages((prev) => [...prev, { text: message, sender: "user" }]);
       e.target.reset();
       try {
         const response = await axios.post("http://localhost:5000/api/auth/selfEvaluation", { query: message });
-        const botResponse = response.data.answer;
-        setChatMessages((prev) => [...prev, { text: botResponse, sender: "bot" }]);
+        const botResponse = response.data;
+        setChatMessages((prev) => [
+          ...prev,
+          { 
+            text: botResponse.text, 
+            formulas: botResponse.formulas, 
+            graphs: botResponse.graphs, 
+            code: botResponse.code, 
+            sender: "bot" 
+          },
+        ]);
       } catch (error) {
         console.error("Error in chat:", error);
         setChatMessages((prev) => [
@@ -63,6 +73,90 @@ export default function SelfEvaluation() {
       }
     }
   };
+
+
+  const renderMessageContent = (message) => {
+    return (
+      <div>
+        {/* Render the main explanation text */}
+        {message.text && <p style={{ marginBottom: "10px", fontSize: "16px" }}>{message.text}</p>}
+  
+        {/* Render LaTeX formulas in a separate block */}
+        {message.formulas && message.formulas.length > 0 && (
+          <div className="formula-section">
+            <h4>📘 Formulas:</h4>
+            {message.formulas.map((formula, index) => (
+              <div key={index} className="formula-block">
+                <Latex>{`$$${formula}$$`}</Latex>
+              </div>
+            ))}
+          </div>
+        )}
+  
+        {/* Render images in a separate block */}
+        {message.graphs && message.graphs.length > 0 && (
+          <div className="image-section">
+            <h4>🖼️ Visual Explanation:</h4>
+            {message.graphs.map((graph, index) => (
+              <img
+                key={index}
+                src={graph}
+                alt="Graph"
+                style={{ maxWidth: "100%", borderRadius: "10px", marginTop: "5px" }}
+              />
+            ))}
+          </div>
+        )}
+  
+        {/* Render links in a separate block */}
+        {message.links && message.links.length > 0 && (
+          <div className="link-section">
+            <h4>🔗 Useful Links:</h4>
+            {message.links.map((link, index) => (
+              <a
+                key={index}
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#007bff", textDecoration: "none" }}
+              >
+                {link}
+              </a>
+            ))}
+          </div>
+        )}
+  
+        {/* Render code blocks in a separate section */}
+        {message.code && message.code.length > 0 && (
+          <div className="code-section">
+            <h4>💻 Code Example:</h4>
+            {message.code.map((code, index) => (
+              <div key={index} className="code-block">
+                <SyntaxHighlighter language={code.language} style={darcula}>
+                  {code.content}
+                </SyntaxHighlighter>
+                <button
+                  onClick={() => navigator.clipboard.writeText(code.content)}
+                  style={{
+                    marginTop: "10px",
+                    padding: "5px 10px",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Copy Code
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+  
 
   return (
     <div className="container">
@@ -151,7 +245,7 @@ export default function SelfEvaluation() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              {msg.text}
+              {renderMessageContent(msg)}
             </motion.div>
           ))}
         </div>
