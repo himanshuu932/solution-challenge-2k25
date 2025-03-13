@@ -23,7 +23,9 @@ const LoginForm = ({ onSuccess, setUser }) => {
         setMessage({ text: 'Login Successful!', type: 'success' });
         localStorage.setItem('token', res.data.token);
         localStorage.setItem("username", res.data.user.username);
+        
         setUser(res.data.user.username);
+
         if (onSuccess) onSuccess();
       } else {
         setMessage({ text: 'Invalid Credentials!', type: 'error' });
@@ -61,6 +63,24 @@ const LoginForm = ({ onSuccess, setUser }) => {
 // Signup Form Component
 const SignupForm = ({ onSuccess }) => {
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [classes, setClasses] = useState([]);
+  const [selectedClass, setSelectedClass] = useState('');
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const res = await axios.get('/api/class/all');
+        setClasses(res.data);
+        if (res.data.length > 0) {
+          setSelectedClass(res.data[0]._id); // set default selected class
+        }
+      } catch (err) {
+        console.error('Error fetching classes:', err);
+      }
+    };
+
+    fetchClasses();
+  }, []);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -69,6 +89,7 @@ const SignupForm = ({ onSuccess }) => {
       username: e.target.username.value,
       email: e.target.email.value,
       password: e.target.password.value,
+      class: selectedClass, // Use selected class from dropdown
     };
 
     try {
@@ -90,19 +111,12 @@ const SignupForm = ({ onSuccess }) => {
           });
           setMessage({ text: 'User already exists. Logged you in!', type: 'success' });
           localStorage.setItem('token', loginRes.data.token);
-
           if (onSuccess) onSuccess();
         } catch (loginErr) {
-          setMessage({
-            text: 'User exists, but login failed. Check password.',
-            type: 'error',
-          });
+          setMessage({ text: 'User exists, but login failed. Check password.', type: 'error' });
         }
       } else {
-        setMessage({
-          text: err.response?.data?.msg || 'Signup error occurred',
-          type: 'error',
-        });
+        setMessage({ text: err.response?.data?.msg || 'Signup error occurred', type: 'error' });
       }
     }
   };
@@ -112,6 +126,21 @@ const SignupForm = ({ onSuccess }) => {
       <input type="text" name="username" placeholder="Username" required />
       <input type="email" name="email" placeholder="Email" required />
       <input type="password" name="password" placeholder="Password" required />
+      
+      {/* Dropdown for selecting a class */}
+      <select
+        name="class"
+        value={selectedClass}
+        onChange={(e) => setSelectedClass(e.target.value)}
+        required
+      >
+        {classes.map((cls) => (
+          <option key={cls._id} value={cls._id}>
+            {cls.name}
+          </option>
+        ))}
+      </select>
+      
       <button type="submit">Signup</button>
       {message.text && (
         <p className="message" style={{ color: message.type === 'success' ? 'green' : 'red' }}>

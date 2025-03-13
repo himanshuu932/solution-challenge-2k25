@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaSearch, FaFilter } from "react-icons/fa";
-import axios from "axios"; // Import axios for API calls
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 import MCQQuiz from "./test/MCQQuiz";
 import ShortAnswer from "./test/Shortanswer"; 
 import "./styles/TestComponent.css";
@@ -11,20 +12,33 @@ const TestComponent = () => {
   const [filterTeacher, setFilterTeacher] = useState("All");
   const [filterTopic, setFilterTopic] = useState("All");
   const [filterQuestions, setFilterQuestions] = useState("All");
-  const [filterType, setFilterType] = useState("All"); // New state for test type filter
+  const [filterType, setFilterType] = useState("All");
+  const [filterStatus, setFilterStatus] = useState("All"); // New filter for test status
   const [filterVisible, setFilterVisible] = useState(false);
-
   const [selectedTest, setSelectedTest] = useState(null);
   const [startTest, setStartTest] = useState(false);
-  const [tests, setTests] = useState([]); // State to store test data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [tests, setTests] = useState([]);
+  // userTestDetails is now an array of attempted test ID strings
+  const [userTestDetails, setUserTestDetails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch test data from the backend
+  // Get user id from token
+  let userId = null;
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      userId = decoded.id;
+    } catch (err) {
+      console.error("Error decoding token", err);
+    }
+  }
+
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/auth/tests"); // Replace with your API endpoint
+        const response = await axios.get("http://localhost:5000/api/auth/tests");
         setTests(response.data.tests);
         setLoading(false);
       } catch (err) {
@@ -37,11 +51,26 @@ const TestComponent = () => {
     fetchTests();
   }, []);
 
-  // Compute unique teacher and topic options for the dropdowns
+  // Fetch user test attempt details based on userId
+  useEffect(() => {
+    const fetchUserTestDetails = async () => {
+      if (!userId) return;
+      try {
+        const response = await axios.get(`http://localhost:5000/api/auth/test-details?userId=${userId}`);
+        // response.data.tests is now an array of test IDs
+        setUserTestDetails(response.data.tests);
+      } catch (err) {
+        console.error("Error fetching user test details:", err);
+      }
+    };
+
+    fetchUserTestDetails();
+  }, [userId]);
+
   const uniqueTeachers = Array.from(new Set(tests.map((test) => test.teacherId)));
   const uniqueTopics = Array.from(new Set(tests.map((test) => test.topic)));
 
-  // Filter tests based on search term and selected filters
+  // Apply filters to all tests including the new status filter
   const filteredTests = tests.filter((test) => {
     const matchesSearch = test.testName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDifficulty = filterDifficulty === "All" || test.level === filterDifficulty;
@@ -56,6 +85,13 @@ const TestComponent = () => {
     } else if (filterQuestions === "more20") {
       matchesQuestions = test.numberOfQuestions > 20;
     }
+
+    // Determine if the test is attempted
+    const isAttempted = userTestDetails.includes(test._id);
+    // Apply the status filter
+    if (filterStatus === "Attempted" && !isAttempted) return false;
+    if (filterStatus === "Pending" && isAttempted) return false;
+
     return matchesSearch && matchesDifficulty && matchesTeacher && matchesTopic && matchesType && matchesQuestions;
   });
 
@@ -89,31 +125,21 @@ const TestComponent = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <button
-                  className="filter-btn"
-                  onClick={() => setFilterVisible(!filterVisible)}
-                >
+                <button className="filter-btn" onClick={() => setFilterVisible(!filterVisible)}>
                   <FaFilter /> Filter
                 </button>
               </div>
             </header>
 
-            {/* Filter options panel */}
             {filterVisible && (
               <div className="filter-options">
-                <select
-                  value={filterDifficulty}
-                  onChange={(e) => setFilterDifficulty(e.target.value)}
-                >
+                <select value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)}>
                   <option value="All">All Difficulties</option>
                   <option value="Easy">Easy</option>
                   <option value="Medium">Medium</option>
                   <option value="Hard">Hard</option>
                 </select>
-                <select
-                  value={filterTeacher}
-                  onChange={(e) => setFilterTeacher(e.target.value)}
-                >
+                <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)}>
                   <option value="All">All Teachers</option>
                   {uniqueTeachers.map((teacher, index) => (
                     <option key={index} value={teacher}>
@@ -121,10 +147,7 @@ const TestComponent = () => {
                     </option>
                   ))}
                 </select>
-                <select
-                  value={filterTopic}
-                  onChange={(e) => setFilterTopic(e.target.value)}
-                >
+                <select value={filterTopic} onChange={(e) => setFilterTopic(e.target.value)}>
                   <option value="All">All Topics</option>
                   {uniqueTopics.map((topic, index) => (
                     <option key={index} value={topic}>
@@ -132,23 +155,22 @@ const TestComponent = () => {
                     </option>
                   ))}
                 </select>
-                <select
-                  value={filterQuestions}
-                  onChange={(e) => setFilterQuestions(e.target.value)}
-                >
+                <select value={filterQuestions} onChange={(e) => setFilterQuestions(e.target.value)}>
                   <option value="All">All Question Counts</option>
                   <option value="less10">Less than 10</option>
                   <option value="10to20">10 to 20</option>
                   <option value="more20">More than 20</option>
                 </select>
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                >
+                <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
                   <option value="All">All Types</option>
                   <option value="multiple-choice">Multiple Choice</option>
                   <option value="short-answer">Short Answer</option>
                   <option value="long-answer">Long Answer</option>
+                </select>
+                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                  <option value="All">All Status</option>
+                  <option value="Attempted">Attempted</option>
+                  <option value="Pending">Pending</option>
                 </select>
               </div>
             )}
@@ -159,50 +181,59 @@ const TestComponent = () => {
               <div className="error-message">{error}</div>
             ) : (
               <section className="test-grid">
-                {filteredTests.map((test, index) => (
-                  <div key={index} className="test-card">
-                    <div className="test-header-card">
-                      <h3>{test.testName}</h3>
-                      <p className="test-subject">{test.topic}</p>
-                    </div>
-                    <div className="test-info">
-                      <p>
-                        <strong>Difficulty:</strong> {test.level}
-                      </p>
-                      <p>
-                        <strong>Questions:</strong> {test.numberOfQuestions}
-                      </p>
-                      <p>
-                        <strong>Time:</strong> {test.time || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Teacher:</strong> {test.teacherId}
-                      </p>
-                      <p>
-                        <strong>Type:</strong> {test.type}
-                      </p>
-                    </div>
-                    <div className="progress-bar-container">
-                      <div className="progress-bar">
-                        <div
-                          className="progress"
-                          style={{ width: `${test.progress || 0}%` }}
-                        ></div>
+                {filteredTests.map((test, index) => {
+                  // Check if test is attempted based on userTestDetails array
+                  const isAttempted = userTestDetails.includes(test._id);
+                  return (
+                    <div key={index} className="test-card">
+                      <div className="test-header-card">
+                        <h3>{test.testName}</h3>
+                        <p className="test-subject">{test.topic}</p>
                       </div>
-                      <span className="progress-text">
-                        {test.progress || 0}%
-                      </span>
+                      <div className="test-info">
+                        <p>
+                          <strong>Difficulty:</strong> {test.level}
+                        </p>
+                        <p>
+                          <strong>Questions:</strong> {test.numberOfQuestions}
+                        </p>
+                        <p>
+                          <strong>Time:</strong> {test.time || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Teacher:</strong> {test.teacherId}
+                        </p>
+                        <p>
+                          <strong>Type:</strong> {test.type}
+                        </p>
+                      </div>
+                      <div className="progress-bar-container">
+                        <div className="progress-bar">
+                          {/* If attempted, progress is 100%; otherwise, 0% */}
+                          <div className="progress" style={{ width: isAttempted ? "100%" : "0%" }}></div>
+                        </div>
+                        <span className="progress-text">{isAttempted ? "100%" : "0%"}</span>
+                      </div>
+                      <div className="test-actions">
+                        {isAttempted ? (
+                          <>
+                            <button className="test-btn attempted">Completed</button>
+                            <button className="test-btn start" onClick={() => handleTestClick(test)}>
+                              Reattempt
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button className="test-btn pending">Pending</button>
+                            <button className="test-btn start" onClick={() => handleTestClick(test)}>
+                              Start
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="test-actions">
-                      <button className={`test-btn ${test.status || "pending"}`}>
-                        {test.status || "Pending"}
-                      </button>
-                      <button className="test-btn start" onClick={() => handleTestClick(test)}>
-                        Start
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </section>
             )}
           </div>
@@ -210,11 +241,10 @@ const TestComponent = () => {
       ) : (
         <main className="test-main">
           {selectedTest.type === "multiple-choice" && (
-            <MCQQuiz setStartTest={setStartTest} questions={selectedTest.questions} />
+            <MCQQuiz setStartTest={setStartTest} questions={selectedTest.questions} testId={selectedTest._id} />
           )}
-          {(selectedTest.type === "short-answer" ||
-            selectedTest.type === "long-answer") && (
-            <ShortAnswer setStartTest={setStartTest} questions={selectedTest.questions} />
+          {(selectedTest.type === "short-answer" || selectedTest.type === "long-answer") && (
+            <ShortAnswer setStartTest={setStartTest} questions={selectedTest.questions} testId={selectedTest._id} />
           )}
         </main>
       )}

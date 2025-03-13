@@ -20,14 +20,7 @@ export default function SelfEvaluation() {
     "Write an essay on SDG4.",
   ];
 
-  const generateQuestion = () => {
-    setQuestion(questions[selectedQuestionNumber - 1]);
-    setFeedback("");
-    // Mark the question as visited
-    const newVisited = [...visited];
-    newVisited[selectedQuestionNumber - 1] = true;
-    setVisited(newVisited);
-  };
+
 
   const submitAnswer = () => {
     setFeedback("Evaluating...\nYour response is being processed.");
