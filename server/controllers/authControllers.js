@@ -1,30 +1,31 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 
 export const signup = async (req, res) => {
-  const { username, email, password } = req.body; // ✅ Use 'username'
+  // Expecting: { username, email, password, class: classId }
+  const { username, email, password, class: classId } = req.body;
   console.log("Signup Data:", req.body);
 
   try {
-    // Check if user already exists
+    // Check if the student already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ msg: 'User already exists' });
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create new user with hashed password
-    const newUser = new User({ username, email, password: hashedPassword });
+    // Create new user with hashed password and a reference to the class they belong to
+    const newUser = new User({ username, email, password: hashedPassword, class: classId });
     await newUser.save();
-    console.log("✅ New User Saved:", newUser);
+    console.log("New User Saved:", newUser);
 
     // Generate JWT Token
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    res.status(201).json({  ok:true,token, user: { username, email } });
+    const token = jwt.sign({ id: newUser._id ,class: classId}, process.env.JWT_SECRET);
+     
+    res.status(201).json({ ok: true, token, user: { username, email, class: classId } });
   } catch (err) {
-    console.error("❌ Signup Error:", err);
+    console.error("Signup Error:", err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -38,11 +39,11 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log("�� Login Successful:", user);
-    res.json({ ok:true,token, user: { username: user.username, email: user.email } });
+    const token = jwt.sign({ id: user._id, class:user.class}, process.env.JWT_SECRET);
+    console.log("Login Successful:", user);
+    res.json({ ok: true, token, user: { username: user.username, email: user.email, class: user.class } });
   } catch (err) {
-    console.error("❌ Login Error:", err);
+    console.error("Login Error:", err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
