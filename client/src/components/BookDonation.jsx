@@ -209,7 +209,7 @@ const BookDonationPage = () => {
     { id: 10, type: 'Stationery', name: 'Sticky Notes', postedBy: 'Ivy', images: ['https://picsum.photos/seed/11/250/150'], tags: ['Writing', 'Supplies'] },
     { id: 11, type: 'Book', name: '1984', postedBy: 'Jack', images: ['https://picsum.photos/seed/12/250/150'], tags: ['Literature', 'Fiction'] },
     { id: 12, type: 'Equipment', name: 'Telescope', postedBy: 'Kara', images: ['https://picsum.photos/seed/13/250/150'], tags: ['Science', 'Astronomy'] },
-    { id: 13, type: 'Stationery', name: 'Highlighters', postedBy: 'Leo', images: ['https://picsum.photos/seed/14/250/150'], tags: ['Writing', 'Supplies'] },
+    { id: 13, type: 'Stationery', name: 'Highlighter', postedBy: 'Leo', images: ['https://picsum.photos/seed/14/250/150'], tags: ['Writing', 'Supplies'] },
     { id: 14, type: 'Book', name: 'Pride and Prejudice', postedBy: 'Mona', images: ['https://picsum.photos/seed/15/250/150'], tags: ['Literature', 'Fiction'] },
     { id: 15, type: 'Equipment', name: 'Lab Coat', postedBy: 'Nina', images: ['https://picsum.photos/seed/16/250/150'], tags: ['Science', 'Lab'] },
     { id: 16, type: 'Stationery', name: 'Markers', postedBy: 'Oscar', images: ['https://picsum.photos/seed/17/250/150'], tags: ['Writing', 'Supplies'] },
