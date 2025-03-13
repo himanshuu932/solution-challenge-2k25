@@ -4,6 +4,8 @@ import SelfEvaluation from "./components/SelfEvaluation";
 import "./Home.css";
 import BookDonationPage from "./components/BookDonation";
 import DiscussionSection from "./components/Discussion";
+import TestComponent from "./components/TestComponent";
+import TestCreator from "./components/TestCreator";
 import AboutUs from "./components/AboutUs";
 import { jwtDecode } from 'jwt-decode';
 function Home1({ user, setUser }) {
@@ -57,20 +59,6 @@ function Home1({ user, setUser }) {
     fetchAnnouncements();
   }, [classId]); // Refetch when classId changes
 
-  useEffect(() => {
-    localStorage.setItem("activeScreen", activeScreen);
-    activeScreen === 3 ? openChat() : closeChat();
-
-  }, [activeScreen]);
-
-  function openChat() {
-    body.classList.add("blurred");
-  }
-
-  function closeChat() {
-    body.classList.remove("blurred");
-  }
-
   return (
     <div className="app">
       <Navbar setActiveScreen={setActiveScreen} user={user} setUser={setUser} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
@@ -104,10 +92,11 @@ function Home1({ user, setUser }) {
       )}
 
       {activeScreen === 2 && <DiscussionSection />}
+      {activeScreen === 3 && <TestComponent/>}
       {activeScreen === 4 && <AboutUs />}
       {activeScreen === 5 && <BookDonationPage />}
-      {activeScreen === 7 && <SelfEvaluation />}
-  
+      {activeScreen === 6 && <SelfEvaluation />}
+      {activeScreen === 7 && <TestCreator />}
     </div>
   );
 }

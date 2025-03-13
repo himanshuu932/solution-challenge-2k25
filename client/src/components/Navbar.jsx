@@ -60,7 +60,8 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     { id: 3, name: 'Test', icon: <ClipboardList /> },
     { id: 4, name: 'About Us', icon: <Info /> },
     { id: 5, name: 'Donate', icon: <Heart /> },
-     { id: 7, name: 'Self Evaluation', icon: <BookOpenCheck/>}
+     { id: 6, name: 'Self Evaluation', icon: <BookOpenCheck/>},
+     { id: 7, name: 'Create', icon: <PlusCircle/>}
   ];
 
   const handleNavClick = (screen) => {
@@ -69,16 +70,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     setIsTestCreatorOpen(false);
     setIsMobileMenuOpen(false);
 
-    // Open the selected component
-    if (screen === 3) {
-      setIsTestOpen(true);
-      setActiveScreen(null);
-    } else if (screen === 6) {
-      setIsTestCreatorOpen(true);
-      setActiveScreen(null);
-    } else {
-      setActiveScreen(screen);
-    }
+      setActiveScreen(screen); 
   };
 
   return (
@@ -113,17 +105,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
             </li>
           ))}
           {/* Add a new navigation item for Test Creator */}
-          <li
-            className="nav-item"
-            onMouseEnter={() => setHovered(6)}
-            onMouseLeave={() => setHovered(null)}
-            onClick={() => handleNavClick(6)}
-          >
-            <div className={`nav-icon ${hovered === 6 ? 'hovered' : ''}`}>
-              <PlusCircle /> {/* Use a different icon for "Create Test" */}
-              {hovered === 6 && <span className="icon-label">Create Test</span>}
-            </div>
-          </li>
+        
         </ul>
 
         {/* Right Section: Mode Toggle, Profile, and Logout */}
@@ -168,16 +150,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
         </div>
       )}
 
-      {/* Test Component */}
-      {isTestOpen && <TestComponent isOpen={isTestOpen} onClose={() => setIsTestOpen(false)} />}
-
-      {/* Test Creator Component */}
-      {isTestCreatorOpen && (
-        <TestCreator
-          onClose={() => setIsTestCreatorOpen(false)}
-          teacherId={user} // Pass the teacher's ID if required
-        />
-      )}
+     
     </>
   );
 }
