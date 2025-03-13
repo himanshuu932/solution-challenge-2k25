@@ -25,13 +25,7 @@ export default function SelfEvaluation() {
     "Write an essay on SDG4.",
   ];
 
-  const generateQuestion = () => {
-    setQuestion(questions[selectedQuestionNumber - 1]);
-    setFeedback("");
-    const newVisited = [...visited];
-    newVisited[selectedQuestionNumber - 1] = true;
-    setVisited(newVisited);
-  };
+
 
   const submitAnswer = () => {
     setFeedback("Evaluating...\nYour response is being processed.");
@@ -162,33 +156,7 @@ export default function SelfEvaluation() {
     <div className="container">
       {/* Chat Section (Right 25% width) */}
       <div className="right-section">
-        <motion.div className="select-question-sidebar" initial={{ y: -50 }} animate={{ y: 0 }}>
-          <div className="sidebar-title">Questions</div>
-          <div className="question-nav">
-            {questions.map((_, idx) => (
-              <div
-                key={idx}
-                className={`question-box ${
-                  answers[idx] !== null
-                    ? answers[idx] === "correct"
-                      ? "correct"
-                      : "incorrect"
-                    : visited[idx]
-                    ? "visited"
-                    : "not-visited"
-                }`}
-                onClick={() => setSelectedQuestionNumber(idx + 1)}
-              >
-                {idx + 1}
-              </div>
-            ))}
-          </div>
-          <div className="status-bar">
-            <p>Answered: {answers.filter((a) => a !== null).length}</p>
-            <p>Not Answered: {answers.filter((a) => a === null).length}</p>
-            <p>Visited: {visited.filter((v) => v).length}</p>
-          </div>
-        </motion.div>
+      
 
         <motion.div className="upload-section" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
           <h2>Upload Answer</h2>
@@ -224,14 +192,7 @@ export default function SelfEvaluation() {
         </motion.div>
       </div>
 
-      {/* Question and Feedback Section (Middle 50% width) */}
-      <motion.div className="question-feedback-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h2>Question and Feedback</h2>
-        <div className="card">
-          <p className="question">{question}</p>
-          {feedback && <p className="feedback">{feedback}</p>}
-        </div>
-      </motion.div>
+   
 
       {/* Chat Section (Left 25% width) */}
       <motion.div className="chat-section" initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
