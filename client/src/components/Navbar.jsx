@@ -5,7 +5,8 @@ import "./styles/Navbar.css";
 import darkmode from "../icons/dark.png";
 import lightmode from "../icons/light.png";
 import l from "../icons/user.png"; // Assuming user image is here
-import { Home, MessageCircle, ClipboardList, Info, Heart, PlusCircle,BookOpenCheck } from 'lucide-react'; // Added PlusCircle for "Create Test"
+import { Home, MessageCircle, ClipboardList, Info, Heart, PlusCircle, BookOpenCheck } from 'lucide-react';
+import ProfileBookModal from "./ProfileBookModal"; // Ensure the path is correct
 
 function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,6 +15,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   const [isTestCreatorOpen, setIsTestCreatorOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [hovered, setHovered] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -43,7 +45,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     console.log("Attempting to log out...");
     if (typeof setUser === "function") {
       localStorage.removeItem("token");
-      setUser(null); // Set user to null
+      setUser(null);
       console.log("Logout successful.");
       window.location.reload();
     } else {
@@ -60,7 +62,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     { id: 3, name: 'Test', icon: <ClipboardList /> },
     { id: 4, name: 'About Us', icon: <Info /> },
     { id: 5, name: 'Donate', icon: <Heart /> },
-     { id: 7, name: 'Self Evaluation', icon: <BookOpenCheck/>}
+    { id: 7, name: 'Self Evaluation', icon: <BookOpenCheck /> }
   ];
 
   const handleNavClick = (screen) => {
@@ -69,7 +71,6 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     setIsTestCreatorOpen(false);
     setIsMobileMenuOpen(false);
 
-    // Open the selected component
     if (screen === 3) {
       setIsTestOpen(true);
       setActiveScreen(null);
@@ -79,6 +80,16 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     } else {
       setActiveScreen(screen);
     }
+  };
+
+  // Sample profile data (replace with dynamic data as needed)
+  const profileData = {
+    name: user || "John Doe",
+    email: "johndoe@example.com",
+    phone: "123-456-7890",
+    testsAttempted: 10,
+    averageScore: "85%",
+    otherInfo: "Enrolled in Computer Science"
   };
 
   return (
@@ -112,7 +123,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
               </div>
             </li>
           ))}
-          {/* Add a new navigation item for Test Creator */}
+          {/* Add navigation item for Test Creator */}
           <li
             className="nav-item"
             onMouseEnter={() => setHovered(6)}
@@ -120,7 +131,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
             onClick={() => handleNavClick(6)}
           >
             <div className={`nav-icon ${hovered === 6 ? 'hovered' : ''}`}>
-              <PlusCircle /> {/* Use a different icon for "Create Test" */}
+              <PlusCircle />
               {hovered === 6 && <span className="icon-label">Create Test</span>}
             </div>
           </li>
@@ -147,7 +158,16 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
               <div className="profile-dropdown">
                 <img src={l} alt="Profile" className="profile-pic" />
                 <div className="profile-username">{fullFirstName}</div>
-                <button className="view-profile-btn" onClick={() => setActiveScreen(6)}>View Your Profile</button>
+                <button 
+                  className="view-profile-btn" 
+                  onClick={() => { 
+                    console.log("View Profile Clicked"); 
+                    setIsProfileModalOpen(true);
+                    setIsProfileDropdownOpen(false); // Close the dropdown
+                  }}
+                >
+                  View Your Profile
+                </button>
                 <button className="logout-button" onClick={handleLogout}>Logout</button>
               </div>
             )}
@@ -175,7 +195,15 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
       {isTestCreatorOpen && (
         <TestCreator
           onClose={() => setIsTestCreatorOpen(false)}
-          teacherId={user} // Pass the teacher's ID if required
+          teacherId={user}
+        />
+      )}
+
+      {/* Profile Book Modal */}
+      {isProfileModalOpen && (
+        <ProfileBookModal 
+          onClose={() => setIsProfileModalOpen(false)} 
+          profileData={profileData} 
         />
       )}
     </>

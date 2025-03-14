@@ -6,6 +6,7 @@ import BookDonationPage from "./components/BookDonation";
 import DiscussionSection from "./components/Discussion";
 import AboutUs from "./components/AboutUs";
 import { jwtDecode } from 'jwt-decode';
+
 function Home1({ user, setUser }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const savedScreen = localStorage.getItem("activeScreen");
@@ -14,39 +15,39 @@ function Home1({ user, setUser }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const body = document.body;
-// Assuming classId is stored in the user object
-   let classId = null;
-    const token = localStorage.getItem('token');
-  
-    // Decode JWT to extract user ID
-    let userId = null;
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-      //  userId = decodedToken.id;
-      classId=decodedToken.class;
-      } catch (error) {
-        console.error('Error decoding token:', error);
-      }
+  // Assuming classId is stored in the user object
+  let classId = null;
+  const token = localStorage.getItem('token');
+
+  // Decode JWT to extract user details
+  if (token) {
+    try {
+      const decodedToken = jwtDecode(token);
+      classId = decodedToken.class;
+    } catch (error) {
+      console.error('Error decoding token:', error);
     }
+  }
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
       if (!classId) return; // Don't fetch if classId is missing
-
       setLoading(true);
       setError(null);
       try {
         const response = await fetch("/api/class/announcements", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ classId }), // Send classId in JSON body
+          body: JSON.stringify({ classId }),
         });
-
         if (!response.ok) throw new Error("Failed to fetch announcements");
-
         const data = await response.json();
-        setAnnouncements(data);
+        // Initialize each announcement with an expanded flag (and other properties if needed)
+        const updatedData = data.map((note) => ({
+          ...note,
+          expanded: false,
+        }));
+        setAnnouncements(updatedData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -55,12 +56,11 @@ function Home1({ user, setUser }) {
     };
 
     fetchAnnouncements();
-  }, [classId]); // Refetch when classId changes
+  }, [classId]);
 
   useEffect(() => {
     localStorage.setItem("activeScreen", activeScreen);
     activeScreen === 3 ? openChat() : closeChat();
-
   }, [activeScreen]);
 
   function openChat() {
@@ -71,9 +71,29 @@ function Home1({ user, setUser }) {
     body.classList.remove("blurred");
   }
 
+  // Toggle expansion of an announcement (to show full details and date)
+  const toggleExpansion = (index) => {
+    setAnnouncements((prev) =>
+      prev.map((n, i) =>
+        i === index ? { ...n, expanded: !n.expanded } : n
+      )
+    );
+  };
+
+  // Dismiss (remove) an announcement from the list
+  const dismissAnnouncement = (index) => {
+    setAnnouncements((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
   return (
     <div className="app">
-      <Navbar setActiveScreen={setActiveScreen} user={user} setUser={setUser} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+      <Navbar
+        setActiveScreen={setActiveScreen}
+        user={user}
+        setUser={setUser}
+        isDarkMode={isDarkMode}
+        setIsDarkMode={setIsDarkMode}
+      />
 
       {activeScreen === 1 && (
         <div className="announcement-section">
@@ -85,14 +105,41 @@ function Home1({ user, setUser }) {
           ) : announcements.length > 0 ? (
             <ul className="announcement-list">
               {announcements.map((note, idx) => (
-                <li key={idx} className="announcement-item">
+                <li
+                  key={idx}
+                  className={`announcement-item flyIn ${note.expanded ? "expanded" : ""}`}
+                  style={{ animationDelay: `${idx * 0.3}s` }}
+                  onClick={() => toggleExpansion(idx)}
+                >
+                  {/* Tick Button (acts as dismiss) placed at the top-right */}
+                  <button
+                    className="tick-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dismissAnnouncement(idx);
+                    }}
+                  >
+                    ✓
+                  </button>
                   <span className="ping-dot">
                     <span className="ping-animate"></span>
                     <span className="ping-core"></span>
                   </span>
                   <p className="announcement-text">
-                    {note.message} <br />
-                    <small>- {note.teacherName}</small>
+                    {note.expanded ? (
+                      <>
+                        {note.message} <br />
+                        <small>- {note.teacherName}</small>
+                        <small>
+                          Date: {note.date ? new Date(note.date).toLocaleString() : "Not available"}
+                        </small>
+                      </>
+                    ) : (
+                      <>
+                        {note.message.substring(0, 50)}... <br />
+                        <small>- {note.teacherName}</small>
+                      </>
+                    )}
                   </p>
                 </li>
               ))}
@@ -107,7 +154,6 @@ function Home1({ user, setUser }) {
       {activeScreen === 4 && <AboutUs />}
       {activeScreen === 5 && <BookDonationPage />}
       {activeScreen === 7 && <SelfEvaluation />}
-  
     </div>
   );
 }
