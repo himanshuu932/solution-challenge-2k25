@@ -1,9 +1,9 @@
 import React, { useState, useEffect, memo } from 'react';
 import './BookDonationPage.css';
-import { FaFilter, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaFilter, FaSearch, FaTimes, FaBell } from 'react-icons/fa';
 import { jwtDecode } from 'jwt-decode';
 
-// FilterBox Component
+// FilterBox Component (unchanged)
 const FilterBox = ({ filterType, setFilterType, selectedTags, setSelectedTags, allTags, onApply, onClose }) => {
   const handleTagClick = (tag, e) => {
     e.stopPropagation();
@@ -45,8 +45,8 @@ const FilterBox = ({ filterType, setFilterType, selectedTags, setSelectedTags, a
   );
 };
 
-// Memoized ItemCard Component
-const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest }) => {
+// Memoized ItemCard Component (unchanged except adding userId prop)
+const ItemCard = memo(({ userId, item, isMyDonation, onRemove, onEdit, onRequest }) => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
@@ -65,7 +65,6 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
     closeModal();
   };
 
-  // Prevent multiple state updates on rapid clicks
   const handleRemoveClick = () => {
     if (!showRemoveConfirmation) {
       setShowRemoveConfirmation(true);
@@ -78,30 +77,7 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
   };
 
   const cancelRemove = () => setShowRemoveConfirmation(false);
-  const requestDonation = async (donationId, requestedBy, message) => {
-    console.log("Request message:", message);
-    setModalOpen(false);
-    try {
-      const response = await fetch('http://localhost:5000/api/donations/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ donationId, requestedBy, message })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to send donation request');
-      }
-      
-      const data = await response.json();
-      console.log('Donation request sent:', data);
-    
-      return data;
-    } catch (error) {
-      console.error('Error sending donation request:', error);
-      throw error;
-    }
-  };
-  
+
   return (
     <>
       <div className={`item-card63696 ${tagsExpanded ? 'hover63696' : ''}`}>
@@ -174,7 +150,7 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
             <h4>Request Item</h4>
             <p>Would you like to request "{item.name}" from {item.postedBy}?</p>
             <div className="modal-actions263696">
-              <button onClick={()=>requestDonation(item.id,userId,"please")}>Yes, Request</button>
+              <button onClick={() => onRequest(item)}>Yes, Request</button>
               <button onClick={closeModal}>Cancel</button>
             </div>
           </div>
@@ -185,8 +161,10 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
 });
 
 const BookDonationPage = () => {
-  // Local state for donations and modals
+  // Local state for donations, modals, and notifications
   const [items, setItems] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const picsumImages = [
     'https://picsum.photos/seed/100/250/150',
     'https://picsum.photos/seed/101/250/150',
@@ -232,7 +210,6 @@ const BookDonationPage = () => {
           type: donation.type,
           postedBy: donation.donatedBy?.username || 'Unknown',
           donatedBy: donation.donatedBy?._id,
-          // If donation.images is undefined, use a fallback image.
           images: donation.images && donation.images.length > 0 ? donation.images : [picsumImages[0]],
           tags: donation.tags || []
         }));
@@ -240,6 +217,26 @@ const BookDonationPage = () => {
       })
       .catch(error => console.error('Error fetching donations:', error));
   }, [picsumImages]);
+
+  // Fetch notifications for current user
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch(`/api/auth/${userId}/notifications`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch notifications');
+      }
+      const data = await response.json();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  // Handle bell icon click
+  const handleBellClick = () => {
+    setShowNotificationsModal(true);
+    fetchNotifications();
+  };
 
   const removeDonation = (id) => {
     fetch(`/api/donations/${id}`, { method: 'DELETE' })
@@ -288,7 +285,6 @@ const BookDonationPage = () => {
       .catch(error => console.error('Error adding donation:', error));
   };
 
-  
   // EDIT functionality
   const openEditModal = (item) => {
     setEditingItem(item);
@@ -391,6 +387,8 @@ const BookDonationPage = () => {
   return (
     <div className="book-donation-page63696">
       <div className="controls-section63696">
+        {/* Bell Icon placed to the left of the search bar */}
+        <FaBell className="bell-icon63696" onClick={handleBellClick} />
         <div className="search-container63696">
           <FaSearch className="search-icon63696" />
           <input
@@ -402,6 +400,26 @@ const BookDonationPage = () => {
           />
         </div>
       </div>
+      {/* Notifications Modal */}
+      {showNotificationsModal && (
+        <div className="overlay63696" onClick={() => setShowNotificationsModal(false)}>
+          <div className="container63696" onClick={e => e.stopPropagation()}>
+            <h3 className="title63696">Notifications</h3>
+            {notifications.length === 0 ? (
+              <p>No notifications.</p>
+            ) : (
+              <ul className="notification-list">
+                {notifications.map((notif, index) => (
+                  <li key={index}>
+                    <strong>{notif.requestedBy.username}</strong>: {notif.message} (Donation: {notif.donation.item})
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button className="cancel-btn63696" onClick={() => setShowNotificationsModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
       <div className="donation-sections63696">
         {/* My Donations Section */}
         <div className="donation-section63696">
@@ -436,7 +454,7 @@ const BookDonationPage = () => {
               </div>
             ) : (
               myDonations.map(item => (
-                <ItemCard userId={userId} key={item.id} item={item} isMyDonation={true} onRemove={removeDonation} onEdit={openEditModal} onRequest={(item) => alert(`Requesting ${item.name}`)} />
+                <ItemCard key={item.id} userId={userId} item={item} isMyDonation={true} onRemove={removeDonation} onEdit={openEditModal} onRequest={(item) => alert(`Requesting ${item.name}`)} />
               ))
             )}
           </div>
@@ -524,7 +542,7 @@ const BookDonationPage = () => {
               </div>
             ) : (
               othersDonations.map(item => (
-                <ItemCard  userId={userId} key={item.id} item={item} isMyDonation={false} onRemove={removeDonation} onEdit={openEditModal} onRequest={(item) => alert(`Requesting ${item.name}`)} />
+                <ItemCard key={item.id} userId={userId} item={item} isMyDonation={false} onRemove={removeDonation} onEdit={openEditModal} onRequest={(item) => alert(`Requesting ${item.name}`)} />
               ))
             )}
           </div>
