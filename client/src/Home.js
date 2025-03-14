@@ -4,6 +4,8 @@ import SelfEvaluation from "./components/SelfEvaluation";
 import "./Home.css";
 import BookDonationPage from "./components/BookDonation";
 import DiscussionSection from "./components/Discussion";
+import TestComponent from "./components/TestComponent";
+import TestCreator from "./components/TestCreator";
 import AboutUs from "./components/AboutUs";
 import { jwtDecode } from 'jwt-decode';
 
@@ -151,6 +153,7 @@ function Home1({ user, setUser }) {
       )}
 
       {activeScreen === 2 && <DiscussionSection />}
+      {activeScreen === 3 && <TestComponent/>}
       {activeScreen === 4 && <AboutUs />}
       {activeScreen === 5 && <BookDonationPage />}
       {activeScreen === 7 && <SelfEvaluation />}
