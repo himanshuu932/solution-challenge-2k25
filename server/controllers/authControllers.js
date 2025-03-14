@@ -61,3 +61,22 @@ export const getNotifications = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+export const deleteNotification = async (req, res) => {
+  try {
+    const { userId, notificationId } = req.params;
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Filter out the notification with the given ID
+    user.notifications = user.notifications.filter(
+      (notif) => notif._id.toString() !== notificationId
+    );
+    await user.save();
+    res.json({ message: 'Notification deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

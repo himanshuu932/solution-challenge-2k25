@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, login ,getNotifications} from '../controllers/authControllers.js';
+import { signup, login, getNotifications,deleteNotification } from '../controllers/authControllers.js';
 import { generateQuestion } from '../controllers/questionController.js';
 import { testController, saveTestDetails, fetchTestDetails } from '../controllers/testController.js';
 import { evaluateController } from '../controllers/evaluateController.js';
@@ -15,6 +15,9 @@ router.post("/tests", testController);
 router.post('/evaluateShortAnswers', evaluateController);
 router.post('/selfEvaluation', selfEvaluationController);
 router.get('/:userId/notifications', getNotifications);
+// DELETE notification route: DELETE /api/auth/:userId/notifications/:notificationId
+router.delete('/:userId/notifications/:notificationId', deleteNotification);
+
 router.get("/tests", async (req, res) => {
     try {
       // Fetch all tests from the database

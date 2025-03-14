@@ -95,9 +95,13 @@ export const requestDonation = async (req, res) => {
       if (!donor) {
         return res.status(404).json({ message: 'Donor not found' });
       }
+      const requester = await User.findById(requestedBy);
+      if (!requester) {
+        return res.status(404).json({ message: 'requester not found' });
+      }
   
       // Construct a detailed message
-      const notificationMessage = `I would like to request this donation: ${donation.item} of type ${donation.type}. Description: ${donation.description}`;
+      const notificationMessage = `I would like to request this donation: ${donation.item} of type ${donation.type}. Description: ${donation.description} Contact: ${requester.email}`;
   
       // Ensure notifications array exists
       if (!donor.notifications) {

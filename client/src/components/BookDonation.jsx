@@ -2,163 +2,8 @@ import React, { useState, useEffect, memo } from 'react';
 import './BookDonationPage.css';
 import { FaFilter, FaSearch, FaTimes, FaBell } from 'react-icons/fa';
 import { jwtDecode } from 'jwt-decode';
-
-// FilterBox Component (unchanged)
-const FilterBox = ({ filterType, setFilterType, selectedTags, setSelectedTags, allTags, onApply, onClose }) => {
-  const handleTagClick = (tag, e) => {
-    e.stopPropagation();
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
-  };
-
-  const handleFilterTypeChange = (e) => {
-    e.stopPropagation();
-    setFilterType(e.target.value);
-  };
-
-  return (
-    <div className="filter-dropdown63696" onClick={(e) => e.stopPropagation()}>
-      <FaTimes className="close-icon63696" onClick={onClose} />
-      <label>Filter by Type:</label>
-      <select value={filterType} onChange={handleFilterTypeChange}>
-        <option value="all">All</option>
-        <option value="book">Book</option>
-        <option value="equipment">Equipment</option>
-        <option value="stationery">Stationery</option>
-        <option value="other">Other</option>
-      </select>
-      <label>Filter by Tags:</label>
-      <div className="tag-filters63696">
-        {allTags.map((tag, index) => (
-          <button
-            key={index}
-            className={`tag-filter63696 ${selectedTags.includes(tag) ? 'active63696' : ''}`}
-            onClick={(e) => handleTagClick(tag, e)}
-          >
-            {tag}
-          </button>
-        ))}
-      </div>
-      <button className="apply-button63696" onClick={onApply}>Apply</button>
-    </div>
-  );
-};
-
-// Memoized ItemCard Component (unchanged except adding userId prop)
-const ItemCard = memo(({ userId, item, isMyDonation, onRemove, onEdit, onRequest }) => {
-  const [carouselIndex, setCarouselIndex] = useState(0);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
-  const [tagsExpanded, setTagsExpanded] = useState(false);
-
-  const prevImage = () =>
-    setCarouselIndex(prev => (prev === 0 ? item.images.length - 1 : prev - 1));
-  const nextImage = () =>
-    setCarouselIndex(prev => (prev === item.images.length - 1 ? 0 : prev + 1));
-
-  const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
-
-  const handleConfirmAppeal = () => {
-    onRequest(item);
-    closeModal();
-  };
-
-  const handleRemoveClick = () => {
-    if (!showRemoveConfirmation) {
-      setShowRemoveConfirmation(true);
-    }
-  };
-
-  const handleRemoveItem = () => {
-    onRemove(item.id);
-    setShowRemoveConfirmation(false);
-  };
-
-  const cancelRemove = () => setShowRemoveConfirmation(false);
-
-  return (
-    <>
-      <div className={`item-card63696 ${tagsExpanded ? 'hover63696' : ''}`}>
-        <div className="item-carousel63696">
-          <img src={item.images[carouselIndex]} alt={item.name} className="carousel-image63696" />
-          {item.images.length > 1 && (
-            <>
-              <button className="carousel-nav63696 left63696" onClick={prevImage} aria-label="Previous image">
-                &lt;
-              </button>
-              <button className="carousel-nav63696 right63696" onClick={nextImage} aria-label="Next image">
-                &gt;
-              </button>
-              <div className="carousel-dots63696">
-                {item.images.map((_, index) => (
-                  <span
-                    key={index}
-                    className={`dot63696 ${carouselIndex === index ? 'active63696' : ''}`}
-                    onClick={() => setCarouselIndex(index)}
-                    role="button"
-                    aria-label={`Image ${index + 1}`}
-                  ></span>
-                ))}
-              </div>
-            </>
-          )}
-          <div className="item-badge63696">{item.type}</div>
-        </div>
-        <div className="item-card-content63696">
-          <h3 className="item-title63696">{item.name}</h3>
-          <p className="item-info63696">
-            <span className="posted-by63696">Posted by: {item.postedBy}</span>
-          </p>
-          <div className={`item-tags63696 ${tagsExpanded ? 'expanded63696' : ''}`}>
-            {item.tags.slice(0, tagsExpanded ? item.tags.length : 3).map((tag, index) => (
-              <span key={index} className="tag63696">{tag}</span>
-            ))}
-            {item.tags.length > 3 && (
-              <button className="expand-tags63696" onClick={() => setTagsExpanded(!tagsExpanded)}>
-                {tagsExpanded ? 'Show Less' : 'Expand Tags'}
-              </button>
-            )}
-          </div>
-          {isMyDonation ? (
-            <div className="action-buttons63696">
-              <button className="remove-button63696" onClick={handleRemoveClick}>Remove</button>
-              <button className="edit-button63696" onClick={() => onEdit(item)}>Edit</button>
-            </div>
-          ) : (
-            <div className="item-actions-container63696">
-              <button className="appeal-button63696" onClick={openModal}>Request Item</button>
-            </div>
-          )}
-        </div>
-      </div>
-      {showRemoveConfirmation && (
-        <div className="modal-overlay263696" onClick={cancelRemove}>
-          <div className="modal263696" onClick={e => e.stopPropagation()}>
-            <h4>Are you sure you want to remove this item?</h4>
-            <div className="modal-actions63696">
-              <button onClick={handleRemoveItem}>Yes, Remove</button>
-              <button onClick={cancelRemove}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {modalOpen && (
-        <div className="modal-overlay263696" onClick={closeModal}>
-          <div className="modal263696" onClick={e => e.stopPropagation()}>
-            <h4>Request Item</h4>
-            <p>Would you like to request "{item.name}" from {item.postedBy}?</p>
-            <div className="modal-actions263696">
-              <button onClick={() => onRequest(item)}>Yes, Request</button>
-              <button onClick={closeModal}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-});
+import FilterBox from './FilterBox';
+import ItemCard from './ItemCard';
 
 const BookDonationPage = () => {
   // Local state for donations, modals, and notifications
@@ -231,7 +76,20 @@ const BookDonationPage = () => {
       console.error('Error fetching notifications:', error);
     }
   };
-
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      const response = await fetch(`/api/auth/${userId}/notifications/${notificationId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete notification');
+      }
+      // Remove the deleted notification from state
+      setNotifications((prev) => prev.filter((notif) => notif._id !== notificationId));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
   // Handle bell icon click
   const handleBellClick = () => {
     setShowNotificationsModal(true);
@@ -402,24 +260,33 @@ const BookDonationPage = () => {
       </div>
       {/* Notifications Modal */}
       {showNotificationsModal && (
-        <div className="overlay63696" onClick={() => setShowNotificationsModal(false)}>
-          <div className="container63696" onClick={e => e.stopPropagation()}>
-            <h3 className="title63696">Notifications</h3>
-            {notifications.length === 0 ? (
-              <p>No notifications.</p>
-            ) : (
-              <ul className="notification-list">
-                {notifications.map((notif, index) => (
-                  <li key={index}>
-                    <strong>{notif.requestedBy.username}</strong>: {notif.message} (Donation: {notif.donation.item})
-                  </li>
-                ))}
-              </ul>
-            )}
-            <button className="cancel-btn63696" onClick={() => setShowNotificationsModal(false)}>Close</button>
-          </div>
-        </div>
+  <div className="overlay63696" onClick={() => setShowNotificationsModal(false)}>
+    <div className="container63696" onClick={e => e.stopPropagation()}>
+      <h3 className="title63696">Notifications</h3>
+      {notifications.length === 0 ? (
+        <p>No notifications.</p>
+      ) : (
+        <ul className="notification-list">
+          {notifications.map((notif) => (
+            <li key={notif._id} className="notification-item">
+              <span>
+                <strong>{notif.requestedBy.username}</strong>: {notif.message} (Donation: {notif.donation.item})
+              </span>
+              <button
+                className="delete-notification-btn"
+                onClick={() => handleDeleteNotification(notif._id)}
+              >
+                x
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
+      <button className="cancel-btn63696" onClick={() => setShowNotificationsModal(false)}>Close</button>
+    </div>
+  </div>
+)}
+
       <div className="donation-sections63696">
         {/* My Donations Section */}
         <div className="donation-section63696">
