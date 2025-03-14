@@ -43,6 +43,18 @@ const BookDonationPage = () => {
       console.error('Error decoding token:', error);
     }
   }
+  
+  // Inside your BookDonationPage component, after your fetchNotifications function is defined
+  useEffect(() => {
+    // Only start the interval if userId exists.
+    if (userId) {
+      const interval = setInterval(() => {
+        fetchNotifications();
+      }, 10000); // 10,000 ms = 10 seconds
+      return () => clearInterval(interval);
+    }
+  }, [userId]);
+
 
   // Fetch donations from backend on mount
   useEffect(() => {
@@ -76,6 +88,7 @@ const BookDonationPage = () => {
       console.error('Error fetching notifications:', error);
     }
   };
+  
   const handleDeleteNotification = async (notificationId) => {
     try {
       const response = await fetch(`/api/auth/${userId}/notifications/${notificationId}`, {
@@ -90,6 +103,7 @@ const BookDonationPage = () => {
       console.error('Error deleting notification:', error);
     }
   };
+  
   // Handle bell icon click
   const handleBellClick = () => {
     setShowNotificationsModal(true);
@@ -244,9 +258,51 @@ const BookDonationPage = () => {
 
   return (
     <div className="book-donation-page63696">
+      <style>
+        {`
+          @keyframes bellShake {
+            0% { transform: rotate(0); }
+            25% { transform: rotate(10deg); }
+            50% { transform: rotate(0); }
+            75% { transform: rotate(-10deg); }
+            100% { transform: rotate(0); }
+          }
+        `}
+      </style>
+      
       <div className="controls-section63696">
-        {/* Bell Icon placed to the left of the search bar */}
-        <FaBell className="bell-icon63696" onClick={handleBellClick} />
+        {/* Bell Icon with notification badge */}
+        <div style={{ position: 'relative', marginRight: '15px' }}>
+          <FaBell 
+            className="bell-icon63696" 
+            onClick={handleBellClick} 
+            style={{
+              fontSize: '1.5rem',
+              color: '#4a4a4a',
+              cursor: 'pointer',
+              animation: notifications.length > 0 ? 'bellShake 1s infinite' : 'none'
+            }}
+          />
+          {notifications.length > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '-5px',
+              right: '-5px',
+              backgroundColor: 'red',
+              color: 'white',
+              borderRadius: '50%',
+              width: '18px',
+              height: '18px',
+              fontSize: '12px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              {notifications.length}
+            </span>
+          )}
+        </div>
+        
         <div className="search-container63696">
           <FaSearch className="search-icon63696" />
           <input
@@ -258,27 +314,66 @@ const BookDonationPage = () => {
           />
         </div>
       </div>
+      
       {/* Notifications Modal */}
       {showNotificationsModal && (
-  <div className="overlay63696" onClick={() => setShowNotificationsModal(false)}>
-    <div className="container63696" onClick={e => e.stopPropagation()}>
-      <h3 className="title63696">Notifications</h3>
-      {notifications.length === 0 ? (
-        <p>No notifications.</p>
-      ) : (
-        <ul className="notification-list">
-          {notifications.map((notif) => (
-            <li key={notif._id} className="notification-item">
-              <span>
-                <strong>{notif.requestedBy.username}</strong>: {notif.message} (Donation: {notif.donation.item})
-              </span>
-              <button
-                className="delete-notification-btn"
-                onClick={() => handleDeleteNotification(notif._id)}
-              >
-                x
-              </button>
-            </li>
+        <div className="overlay63696" onClick={() => setShowNotificationsModal(false)}>
+          <div className="container63696" onClick={e => e.stopPropagation()}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              borderBottom: '1px solid #eee',
+              paddingBottom: '10px',
+              marginBottom: '15px'
+            }}>
+              <h3 className="title63696">Notifications</h3>
+              <FaTimes 
+                onClick={() => setShowNotificationsModal(false)} 
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                  color: '#666'
+                }}
+              />
+            </div>
+            
+            {notifications.length === 0 ? (
+              <p>No notifications.</p>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {notifications.map((notif) => (
+                  <li key={notif._id} style={{ 
+                    padding: '10px', 
+                    borderBottom: '1px solid #eee',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <span>
+                      <strong>{notif.requestedBy.username}</strong>: {notif.message} (Donation: {notif.donation.item})
+                    </span>
+                    <button
+                      onClick={() => handleDeleteNotification(notif._id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ff4d4d',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        marginLeft: '10px',
+                        padding: '0 5px',
+                        borderRadius: '50%',
+                        transition: 'background-color 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <FaTimes />
+                    </button>
+                  </li>
           ))}
         </ul>
       )}
