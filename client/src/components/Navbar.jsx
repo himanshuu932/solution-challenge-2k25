@@ -69,8 +69,8 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     setIsTestOpen(false);
     setIsTestCreatorOpen(false);
     setIsMobileMenuOpen(false);
-
-      setActiveScreen(screen); 
+    localStorage.setItem('activeScreen', screen);
+    setActiveScreen(screen); 
   };
 
   return (

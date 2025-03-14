@@ -1,39 +1,107 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import './BookDonationPage.css';
 import { FaFilter, FaSearch, FaTimes } from 'react-icons/fa';
+import { jwtDecode } from 'jwt-decode';
 
-const ItemCard = ({ item, currentUser, onRemove, isMyDonation }) => {
+// FilterBox Component
+const FilterBox = ({ filterType, setFilterType, selectedTags, setSelectedTags, allTags, onApply, onClose }) => {
+  const handleTagClick = (tag, e) => {
+    e.stopPropagation();
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleFilterTypeChange = (e) => {
+    e.stopPropagation();
+    setFilterType(e.target.value);
+  };
+
+  return (
+    <div className="filter-dropdown63696" onClick={(e) => e.stopPropagation()}>
+      <FaTimes className="close-icon63696" onClick={onClose} />
+      <label>Filter by Type:</label>
+      <select value={filterType} onChange={handleFilterTypeChange}>
+        <option value="all">All</option>
+        <option value="book">Book</option>
+        <option value="equipment">Equipment</option>
+        <option value="stationery">Stationery</option>
+        <option value="other">Other</option>
+      </select>
+      <label>Filter by Tags:</label>
+      <div className="tag-filters63696">
+        {allTags.map((tag, index) => (
+          <button
+            key={index}
+            className={`tag-filter63696 ${selectedTags.includes(tag) ? 'active63696' : ''}`}
+            onClick={(e) => handleTagClick(tag, e)}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
+      <button className="apply-button63696" onClick={onApply}>Apply</button>
+    </div>
+  );
+};
+
+// Memoized ItemCard Component
+const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest }) => {
   const [carouselIndex, setCarouselIndex] = useState(0);
-  const [modalOpen, setModalOpen] = useState(false); // For Request Item Modal
-  const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false); // For Remove Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
   const [tagsExpanded, setTagsExpanded] = useState(false);
 
   const prevImage = () =>
-    setCarouselIndex((prev) => (prev === 0 ? item.images.length - 1 : prev - 1));
+    setCarouselIndex(prev => (prev === 0 ? item.images.length - 1 : prev - 1));
   const nextImage = () =>
-    setCarouselIndex((prev) => (prev === item.images.length - 1 ? 0 : prev + 1));
+    setCarouselIndex(prev => (prev === item.images.length - 1 ? 0 : prev + 1));
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
 
   const handleConfirmAppeal = () => {
-    alert(`You requested the item "${item.name}" posted by ${item.postedBy}`);
+    onRequest(item);
     closeModal();
   };
 
+  // Prevent multiple state updates on rapid clicks
   const handleRemoveClick = () => {
-    setShowRemoveConfirmation(true); // Show the confirmation modal
+    if (!showRemoveConfirmation) {
+      setShowRemoveConfirmation(true);
+    }
   };
 
   const handleRemoveItem = () => {
-    onRemove(item.id); // Call the onRemove function to remove the item
-    setShowRemoveConfirmation(false); // Close the confirmation modal
+    onRemove(item.id);
+    setShowRemoveConfirmation(false);
   };
 
-  const cancelRemove = () => {
-    setShowRemoveConfirmation(false); // Close the confirmation modal without removing the item
+  const cancelRemove = () => setShowRemoveConfirmation(false);
+  const requestDonation = async (donationId, requestedBy, message) => {
+    console.log("Request message:", message);
+    setModalOpen(false);
+    try {
+      const response = await fetch('http://localhost:5000/api/donations/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ donationId, requestedBy, message })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send donation request');
+      }
+      
+      const data = await response.json();
+      console.log('Donation request sent:', data);
+    
+      return data;
+    } catch (error) {
+      console.error('Error sending donation request:', error);
+      throw error;
+    }
   };
-
+  
   return (
     <>
       <div className={`item-card63696 ${tagsExpanded ? 'hover63696' : ''}`}>
@@ -62,19 +130,14 @@ const ItemCard = ({ item, currentUser, onRemove, isMyDonation }) => {
           )}
           <div className="item-badge63696">{item.type}</div>
         </div>
-
         <div className="item-card-content63696">
           <h3 className="item-title63696">{item.name}</h3>
           <p className="item-info63696">
             <span className="posted-by63696">Posted by: {item.postedBy}</span>
           </p>
-
-          {/* Tags Section */}
           <div className={`item-tags63696 ${tagsExpanded ? 'expanded63696' : ''}`}>
             {item.tags.slice(0, tagsExpanded ? item.tags.length : 3).map((tag, index) => (
-              <span key={index} className="tag63696">
-                {tag}
-              </span>
+              <span key={index} className="tag63696">{tag}</span>
             ))}
             {item.tags.length > 3 && (
               <button className="expand-tags63696" onClick={() => setTagsExpanded(!tagsExpanded)}>
@@ -82,29 +145,21 @@ const ItemCard = ({ item, currentUser, onRemove, isMyDonation }) => {
               </button>
             )}
           </div>
-
-          {/* Remove Button for My Donations */}
-          {isMyDonation && (
-            <button className="remove-button63696" onClick={handleRemoveClick}>
-              Remove
-            </button>
-          )}
-
-          {/* Request Item Button for Others' Donations */}
-          {!isMyDonation && (
+          {isMyDonation ? (
+            <div className="action-buttons63696">
+              <button className="remove-button63696" onClick={handleRemoveClick}>Remove</button>
+              <button className="edit-button63696" onClick={() => onEdit(item)}>Edit</button>
+            </div>
+          ) : (
             <div className="item-actions-container63696">
-              <button className="appeal-button63696" onClick={openModal}>
-                Request Item
-              </button>
+              <button className="appeal-button63696" onClick={openModal}>Request Item</button>
             </div>
           )}
         </div>
       </div>
-
-      {/* Remove Confirmation Modal */}
       {showRemoveConfirmation && (
         <div className="modal-overlay263696" onClick={cancelRemove}>
-          <div className="modal263696" onClick={(e) => e.stopPropagation()}>
+          <div className="modal263696" onClick={e => e.stopPropagation()}>
             <h4>Are you sure you want to remove this item?</h4>
             <div className="modal-actions63696">
               <button onClick={handleRemoveItem}>Yes, Remove</button>
@@ -113,17 +168,13 @@ const ItemCard = ({ item, currentUser, onRemove, isMyDonation }) => {
           </div>
         </div>
       )}
-
-      {/* Request Item Modal */}
       {modalOpen && (
         <div className="modal-overlay263696" onClick={closeModal}>
-          <div className="modal263696" onClick={(e) => e.stopPropagation()}>
+          <div className="modal263696" onClick={e => e.stopPropagation()}>
             <h4>Request Item</h4>
-            <p>
-             Would you like to request "{item.name}" from {item.postedBy}?
-            </p>
+            <p>Would you like to request "{item.name}" from {item.postedBy}?</p>
             <div className="modal-actions263696">
-              <button onClick={handleConfirmAppeal}>Yes, Request</button>
+              <button onClick={()=>requestDonation(item.id,userId,"please")}>Yes, Request</button>
               <button onClick={closeModal}>Cancel</button>
             </div>
           </div>
@@ -131,103 +182,11 @@ const ItemCard = ({ item, currentUser, onRemove, isMyDonation }) => {
       )}
     </>
   );
-};
+});
 
-const FilterBox = ({
-  filterType,
-  setFilterType,
-  selectedTags,
-  setSelectedTags,
-  allTags,
-  onApply,
-  onClose,
-}) => {
-  // Stop event propagation when interacting with the filter dropdown
-  const handleTagClick = (tag, e) => {
-    e.stopPropagation(); // Prevent event from bubbling up to the parent
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
-  const handleFilterTypeChange = (e) => {
-    e.stopPropagation(); // Prevent event from bubbling up to the parent
-    setFilterType(e.target.value);
-  };
-
-  return (
-    <div className="filter-dropdown63696" onClick={(e) => e.stopPropagation()}>
-      {/* Close Icon */}
-      <FaTimes className="close-icon63696" onClick={onClose} />
-
-      {/* Filter by Type */}
-      <label>Filter by Type:</label>
-      <select
-        value={filterType}
-        onChange={handleFilterTypeChange}
-      >
-        <option value="all">All</option>
-        <option value="book">Book</option>
-        <option value="equipment">Equipment</option>
-        <option value="stationery">Stationery</option>
-        <option value="other">Other</option>
-      </select>
-
-      {/* Filter by Tags */}
-      <label>Filter by Tags:</label>
-      <div className="tag-filters63696">
-        {allTags.map((tag, index) => (
-          <button
-            key={index}
-            className={`tag-filter63696 ${selectedTags.includes(tag) ? 'active63696' : ''}`}
-            onClick={(e) => handleTagClick(tag, e)}
-          >
-            {tag}
-          </button>
-        ))}
-      </div>
-
-      {/* Apply Button */}
-      <button className="apply-button63696" onClick={onApply}>
-        Apply
-      </button>
-    </div>
-  );
-};
 const BookDonationPage = () => {
-  const [items, setItems] = useState([
-    // Sample data (30 items)
-    { id: 1, type: 'Book', name: 'Data Structures & Algorithms', postedBy: 'Alice', images: ['https://picsum.photos/seed/1/250/150', 'https://picsum.photos/seed/2/250/150'], tags: ['Computer Science', 'Programming'] },
-    { id: 2, type: 'Equipment', name: 'Scientific Calculator', postedBy: 'Bob', images: ['https://picsum.photos/seed/3/250/150'], tags: ['Math', 'Tools','Math', 'Tools'] },
-    { id: 3, type: 'Stationery', name: 'Notebooks (Pack of 5)', postedBy: 'Charlie', images: ['https://picsum.photos/seed/4/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 4, type: 'Book', name: 'Introduction to Psychology', postedBy: 'Alice', images: ['https://picsum.photos/seed/5/250/150'], tags: ['Social Sciences', 'Psychology'] },
-    { id: 5, type: 'Book', name: 'The Great Gatsby', postedBy: 'David', images: ['https://picsum.photos/seed/6/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 6, type: 'Equipment', name: 'Microscope', postedBy: 'Eve', images: ['https://picsum.photos/seed/7/250/150'], tags: ['Science', 'Lab'] },
-    { id: 7, type: 'Stationery', name: 'Pens (Pack of 10)', postedBy: 'Frank', images: ['https://picsum.photos/seed/8/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 8, type: 'Book', name: 'To Kill a Mockingbird', postedBy: 'Grace', images: ['https://picsum.photos/seed/9/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 9, type: 'Equipment', name: 'Graphing Calculator', postedBy: 'Hank', images: ['https://picsum.photos/seed/10/250/150'], tags: ['Math', 'Tools'] },
-    { id: 10, type: 'Stationery', name: 'Sticky Notes', postedBy: 'Ivy', images: ['https://picsum.photos/seed/11/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 11, type: 'Book', name: '1984', postedBy: 'Jack', images: ['https://picsum.photos/seed/12/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 12, type: 'Equipment', name: 'Telescope', postedBy: 'Kara', images: ['https://picsum.photos/seed/13/250/150'], tags: ['Science', 'Astronomy'] },
-    { id: 13, type: 'Stationery', name: 'Highlighter', postedBy: 'Leo', images: ['https://picsum.photos/seed/14/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 14, type: 'Book', name: 'Pride and Prejudice', postedBy: 'Mona', images: ['https://picsum.photos/seed/15/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 15, type: 'Equipment', name: 'Lab Coat', postedBy: 'Nina', images: ['https://picsum.photos/seed/16/250/150'], tags: ['Science', 'Lab'] },
-    { id: 16, type: 'Stationery', name: 'Markers', postedBy: 'Oscar', images: ['https://picsum.photos/seed/17/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 17, type: 'Book', name: 'The Catcher in the Rye', postedBy: 'Paul', images: ['https://picsum.photos/seed/18/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 18, type: 'Equipment', name: 'Bunsen Burner', postedBy: 'Quincy', images: ['https://picsum.photos/seed/19/250/150'], tags: ['Science', 'Lab'] },
-    { id: 19, type: 'Stationery', name: 'Rulers', postedBy: 'Rachel', images: ['https://picsum.photos/seed/20/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 20, type: 'Book', name: 'Brave New World', postedBy: 'Steve', images: ['https://picsum.photos/seed/21/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 21, type: 'Equipment', name: 'Test Tubes', postedBy: 'Tina', images: ['https://picsum.photos/seed/22/250/150'], tags: ['Science', 'Lab'] },
-    { id: 22, type: 'Stationery', name: 'Erasers', postedBy: 'Uma', images: ['https://picsum.photos/seed/23/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 23, type: 'Book', name: 'The Hobbit', postedBy: 'Victor', images: ['https://picsum.photos/seed/24/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 24, type: 'Equipment', name: 'Microscope Slides', postedBy: 'Wendy', images: ['https://picsum.photos/seed/25/250/150'], tags: ['Science', 'Lab'] },
-    { id: 25, type: 'Stationery', name: 'Pencils', postedBy: 'Xander', images: ['https://picsum.photos/seed/26/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 26, type: 'Book', name: 'The Lord of the Rings', postedBy: 'Yara', images: ['https://picsum.photos/seed/27/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 27, type: 'Equipment', name: 'Beakers', postedBy: 'Zack', images: ['https://picsum.photos/seed/28/250/150'], tags: ['Science', 'Lab'] },
-    { id: 28, type: 'Stationery', name: 'Scissors', postedBy: 'Alice', images: ['https://picsum.photos/seed/29/250/150'], tags: ['Writing', 'Supplies'] },
-    { id: 29, type: 'Book', name: 'The Alchemist', postedBy: 'Bob', images: ['https://picsum.photos/seed/30/250/150'], tags: ['Literature', 'Fiction'] },
-    { id: 30, type: 'Equipment', name: 'Safety Goggles', postedBy: 'Charlie', images: ['https://picsum.photos/seed/31/250/150'], tags: ['Science', 'Lab'] },
-  ]);
+  // Local state for donations and modals
+  const [items, setItems] = useState([]);
   const picsumImages = [
     'https://picsum.photos/seed/100/250/150',
     'https://picsum.photos/seed/101/250/150',
@@ -238,6 +197,57 @@ const BookDonationPage = () => {
   const [newItemType, setNewItemType] = useState('Book');
   const [newItemTags, setNewItemTags] = useState('');
   const [newItemImage, setNewItemImage] = useState('');
+
+  // Edit donation state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editItemName, setEditItemName] = useState('');
+  const [editItemType, setEditItemType] = useState('');
+  const [editItemTags, setEditItemTags] = useState('');
+  const [editItemImage, setEditItemImage] = useState('');
+
+  // Decode token from local storage
+  const token = localStorage.getItem('token');
+  let userId = null, classId = null;
+  let currentUser = { _id: null, username: 'Guest' };
+  if (token) {
+    try {
+      const decodedToken = jwtDecode(token);
+      userId = decodedToken.id;
+      classId = decodedToken.classId;
+      currentUser = decodedToken;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+    }
+  }
+
+  // Fetch donations from backend on mount
+  useEffect(() => {
+    fetch('/api/donations')
+      .then(res => res.json())
+      .then(data => {
+        const mappedItems = data.map(donation => ({
+          id: donation._id,
+          name: donation.item,
+          type: donation.type,
+          postedBy: donation.donatedBy?.username || 'Unknown',
+          donatedBy: donation.donatedBy?._id,
+          // If donation.images is undefined, use a fallback image.
+          images: donation.images && donation.images.length > 0 ? donation.images : [picsumImages[0]],
+          tags: donation.tags || []
+        }));
+        setItems(mappedItems);
+      })
+      .catch(error => console.error('Error fetching donations:', error));
+  }, [picsumImages]);
+
+  const removeDonation = (id) => {
+    fetch(`/api/donations/${id}`, { method: 'DELETE' })
+      .then(res => res.json())
+      .then(() => setItems(items.filter(item => item.id !== id)))
+      .catch(error => console.error('Error deleting donation:', error));
+  };
+
   const openAddItemModal = () => {
     setNewItemName('');
     setNewItemType('Book');
@@ -245,77 +255,137 @@ const BookDonationPage = () => {
     setNewItemImage(picsumImages[0]);
     setShowAddItemModal(true);
   };
+
   const handleAddItemSubmit = (e) => {
     e.preventDefault();
-    const newItem = {
-      id: items.length + 1,
+    const donationData = {
+      item: newItemName,
       type: newItemType,
-      name: newItemName,
-      postedBy: currentUser,
-      images: [newItemImage],
-      tags: newItemTags.split(',').map(tag => tag.trim())
+      tags: newItemTags.split(',').map(tag => tag.trim()),
+      description: '',
+      donatedBy: userId
     };
-    setItems([...items, newItem]);
-    setShowAddItemModal(false);
-  };
-  
-  const [searchTerm, setSearchTerm] = useState('');
 
-  // Temporary filter states (user selections)
+    fetch('/api/donations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(donationData)
+    })
+      .then(res => res.json())
+      .then(data => {
+        const newDonation = {
+          id: data._id,
+          name: data.item,
+          type: data.type,
+          postedBy: data.donatedBy?.username || currentUser.username,
+          donatedBy: data.donatedBy?._id,
+          images: data.images && data.images.length > 0 ? data.images : [newItemImage],
+          tags: data.tags || []
+        };
+        setItems([...items, newDonation]);
+        setShowAddItemModal(false);
+      })
+      .catch(error => console.error('Error adding donation:', error));
+  };
+
+  
+  // EDIT functionality
+  const openEditModal = (item) => {
+    setEditingItem(item);
+    setEditItemName(item.name);
+    setEditItemType(item.type);
+    setEditItemTags(item.tags.join(', '));
+    setEditItemImage(item.images[0] || picsumImages[0]);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditItemSubmit = (e) => {
+    e.preventDefault();
+    const updatedData = {
+      item: editItemName,
+      type: editItemType,
+      tags: editItemTags.split(',').map(tag => tag.trim()),
+      description: '',
+      donatedBy: userId
+    };
+
+    fetch(`/api/donations/${editingItem.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedData)
+    })
+      .then(res => res.json())
+      .then(data => {
+        const updatedDonation = {
+          id: data._id,
+          name: data.item,
+          type: data.type,
+          postedBy: data.donatedBy?.username || currentUser.username,
+          donatedBy: data.donatedBy?._id,
+          images: data.images && data.images.length > 0 ? data.images : [editItemImage],
+          tags: data.tags || []
+        };
+        setItems(items.map(item => (item.id === updatedDonation.id ? updatedDonation : item)));
+        setIsEditModalOpen(false);
+        setEditingItem(null);
+      })
+      .catch(error => console.error('Error updating donation:', error));
+  };
+
+  // Filtering state
+  const [searchTerm, setSearchTerm] = useState('');
   const [myDonationsFilterType, setMyDonationsFilterType] = useState('all');
   const [myDonationsSelectedTags, setMyDonationsSelectedTags] = useState([]);
   const [othersDonationsFilterType, setOthersDonationsFilterType] = useState('all');
   const [othersDonationsSelectedTags, setOthersDonationsSelectedTags] = useState([]);
-
-  // Applied filter states (used for filtering)
   const [appliedMyDonationsFilterType, setAppliedMyDonationsFilterType] = useState('all');
   const [appliedMyDonationsSelectedTags, setAppliedMyDonationsSelectedTags] = useState([]);
   const [appliedOthersDonationsFilterType, setAppliedOthersDonationsFilterType] = useState('all');
   const [appliedOthersDonationsSelectedTags, setAppliedOthersDonationsSelectedTags] = useState([]);
+  const [showFilterDropdown1, setShowFilterDropdown1] = useState(false);
+  const [showFilterDropdown2, setShowFilterDropdown2] = useState(false);
 
-  const [showFilterDropdown1, setShowFilterDropdown1] = useState(false); // Filter dropdown for "My Donations"
-  const [showFilterDropdown2, setShowFilterDropdown2] = useState(false); // Filter dropdown for "Others' Donations"
-  const currentUser = 'Alice';
+  const allTags = [...new Set(items.flatMap(item => item.tags))];
 
-  // Extract all unique tags for filtering
-  const allTags = [...new Set(items.flatMap((item) => item.tags))];
-
-  // Apply filters for "My Donations" section
   const applyMyDonationsFilters = () => {
     setAppliedMyDonationsFilterType(myDonationsFilterType);
     setAppliedMyDonationsSelectedTags(myDonationsSelectedTags);
-    setShowFilterDropdown1(false); // Close the dropdown
+    setShowFilterDropdown1(false);
   };
 
-  // Apply filters for "Others' Donations" section
   const applyOthersDonationsFilters = () => {
     setAppliedOthersDonationsFilterType(othersDonationsFilterType);
     setAppliedOthersDonationsSelectedTags(othersDonationsSelectedTags);
-    setShowFilterDropdown2(false); // Close the dropdown
+    setShowFilterDropdown2(false);
   };
 
-  // Filter items for "My Donations" section
-  const myDonations = items.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const matchesType = appliedMyDonationsFilterType === 'all' || item.type.toLowerCase() === appliedMyDonationsFilterType.toLowerCase();
-    const matchesTags = appliedMyDonationsSelectedTags.length === 0 || appliedMyDonationsSelectedTags.every((tag) => item.tags.includes(tag));
-
-    return item.postedBy === currentUser && matchesSearch && matchesType && matchesTags;
+  // Filter donations using donatedBy (userId) comparison
+  const myDonations = items.filter(item => {
+    const matchesSearch =
+      (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.tags.some(tag => (tag || '').toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesType =
+      appliedMyDonationsFilterType === 'all' ||
+      (item.type || '').toLowerCase() === appliedMyDonationsFilterType.toLowerCase();
+    const matchesTags =
+      appliedMyDonationsSelectedTags.length === 0 ||
+      appliedMyDonationsSelectedTags.every(tag => item.tags.includes(tag));
+    return item.donatedBy === userId && matchesSearch && matchesType && matchesTags;
   });
 
-  // Filter items for "Others' Donations" section
-  const othersDonations = items.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const matchesType = appliedOthersDonationsFilterType === 'all' || item.type.toLowerCase() === appliedOthersDonationsFilterType.toLowerCase();
-    const matchesTags = appliedOthersDonationsSelectedTags.length === 0 || appliedOthersDonationsSelectedTags.every((tag) => item.tags.includes(tag));
-
-    return item.postedBy !== currentUser && matchesSearch && matchesType && matchesTags;
+  const othersDonations = items.filter(item => {
+    const matchesSearch =
+      (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.tags.some(tag => (tag || '').toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesType =
+      appliedOthersDonationsFilterType === 'all' ||
+      (item.type || '').toLowerCase() === appliedOthersDonationsFilterType.toLowerCase();
+    const matchesTags =
+      appliedOthersDonationsSelectedTags.length === 0 ||
+      appliedOthersDonationsSelectedTags.every(tag => item.tags.includes(tag));
+    return item.donatedBy !== userId && matchesSearch && matchesType && matchesTags;
   });
 
   return (
@@ -327,121 +397,106 @@ const BookDonationPage = () => {
             type="text"
             placeholder="Search items..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="search-input63696"
           />
         </div>
       </div>
-
       <div className="donation-sections63696">
         {/* My Donations Section */}
         <div className="donation-section63696">
-  <div className="section-header63696">
-    <h2>My Donations</h2>
-    <div className="filter-icon63696" onClick={() => setShowFilterDropdown1(!showFilterDropdown1)}>
-      <FaFilter />
-      {showFilterDropdown1 && (
-        <FilterBox
-          filterType={myDonationsFilterType}
-          setFilterType={setMyDonationsFilterType}
-          selectedTags={myDonationsSelectedTags}
-          setSelectedTags={setMyDonationsSelectedTags}
-          allTags={allTags}
-          onApply={applyMyDonationsFilters}
-          onClose={() => setShowFilterDropdown1(false)}
-        />
-      )}
-      <div><text>Filter</text></div>
-    </div>
-  </div>
-  <div className="item-card-container63696">
-    {/* Add Donation Card */}
-    <div className="add-item-card63696" onClick={openAddItemModal}>
-      <span className="add-icon63696">+</span>
-      <p>Add Donation</p>
-    </div>
-
-    {/* Donation Items */}
-    {myDonations.length === 0 ? (
-      <div className="no-items-message63696">
-        <p>No donations yet. Click the "+" button to add an item.</p>
-      </div>
-    ) : (
-      myDonations.map((item) => (
-        <ItemCard
-          key={item.id}
-          item={item}
-          currentUser={currentUser}
-          onRemove={(id) => setItems(items.filter((item) => item.id !== id))}
-          isMyDonation={true}
-        />
-      ))
-    )}
-  </div>
-  {showAddItemModal && (
-  <div className="overlay63696" onClick={() => setShowAddItemModal(false)}>
-    <div className="container63696" onClick={(e) => e.stopPropagation()}>
-      <h3 className="title63696">Add New Item</h3>
-      <form onSubmit={handleAddItemSubmit} className="modal-form63696">
-        <div className="input-group63696">
-          <label>Item Name</label>
-          <input
-            type="text"
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="Enter item name"
-            required
-          />
+          <div className="section-header63696">
+            <h2>My Donations</h2>
+            <div className="filter-icon63696" onClick={() => setShowFilterDropdown1(!showFilterDropdown1)}>
+              <FaFilter />
+              {showFilterDropdown1 && (
+                <FilterBox
+                  filterType={myDonationsFilterType}
+                  setFilterType={setMyDonationsFilterType}
+                  selectedTags={myDonationsSelectedTags}
+                  setSelectedTags={setMyDonationsSelectedTags}
+                  allTags={allTags}
+                  onApply={applyMyDonationsFilters}
+                  onClose={() => setShowFilterDropdown1(false)}
+                />
+              )}
+              <div>
+                <span>Filter</span>
+              </div>
+            </div>
+          </div>
+          <div className="item-card-container63696">
+            <div className="add-item-card63696" onClick={openAddItemModal}>
+              <span className="add-icon63696">+</span>
+              <p>Add Donation</p>
+            </div>
+            {myDonations.length === 0 ? (
+              <div className="no-items-message63696">
+                <p>No donations yet. Click the "+" button to add an item.</p>
+              </div>
+            ) : (
+              myDonations.map(item => (
+                <ItemCard userId={userId} key={item.id} item={item} isMyDonation={true} onRemove={removeDonation} onEdit={openEditModal} onRequest={(item) => alert(`Requesting ${item.name}`)} />
+              ))
+            )}
+          </div>
+          {showAddItemModal && (
+            <div className="overlay63696" onClick={() => setShowAddItemModal(false)}>
+              <div className="container63696" onClick={e => e.stopPropagation()}>
+                <h3 className="title63696">Add New Item</h3>
+                <form onSubmit={handleAddItemSubmit} className="modal-form63696">
+                  <div className="input-group63696">
+                    <label>Item Name</label>
+                    <input
+                      type="text"
+                      value={newItemName}
+                      onChange={e => setNewItemName(e.target.value)}
+                      placeholder="Enter item name"
+                      required
+                    />
+                  </div>
+                  <div className="input-group63696">
+                    <label>Item Type</label>
+                    <select value={newItemType} onChange={e => setNewItemType(e.target.value)} required>
+                      <option value="Book">Book</option>
+                      <option value="Equipment">Equipment</option>
+                      <option value="Stationery">Stationery</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="input-group63696">
+                    <label>Tags (comma-separated)</label>
+                    <input
+                      type="text"
+                      value={newItemTags}
+                      onChange={e => setNewItemTags(e.target.value)}
+                      placeholder="e.g., Math, Science"
+                      required
+                    />
+                  </div>
+                  <div className="input-group63696">
+                    <label>Select Image</label>
+                    <select value={newItemImage} onChange={e => setNewItemImage(e.target.value)} required>
+                      {picsumImages.map((img, index) => (
+                        <option key={index} value={img}>
+                          Image {index + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="actions63696">
+                    <button type="submit" className="add-btn63696">Add Item</button>
+                    <button type="button" className="cancel-btn63696" onClick={() => setShowAddItemModal(false)}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="input-group63696">
-          <label>Item Type</label>
-          <select
-            value={newItemType}
-            onChange={(e) => setNewItemType(e.target.value)}
-            required
-          >
-            <option value="Book">Book</option>
-            <option value="Equipment">Equipment</option>
-            <option value="Stationery">Stationery</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div className="input-group63696">
-          <label>Tags (comma-separated)</label>
-          <input
-            type="text"
-            value={newItemTags}
-            onChange={(e) => setNewItemTags(e.target.value)}
-            placeholder="e.g., Math, Science"
-            required
-          />
-        </div>
-        <div className="input-group63696">
-          <label>Select Image</label>
-          <select
-            value={newItemImage}
-            onChange={(e) => setNewItemImage(e.target.value)}
-            required
-          >
-            {picsumImages.map((img, index) => (
-              <option key={index} value={img}>Image {index + 1}</option>
-            ))}
-          </select>
-        </div>
-        <div className="actions63696">
-          <button type="submit" className="add-btn63696">Add Item</button>
-          <button type="button" className="cancel-btn63696" onClick={() => setShowAddItemModal(false)}>Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
-
-
-
-
         {/* Others' Donations Section */}
-
+        <div className="donation-section63696">
           <div className="section-header63696">
             <h2>Others' Donations</h2>
             <div className="filter-icon63696" onClick={() => setShowFilterDropdown2(!showFilterDropdown2)}>
@@ -457,7 +512,9 @@ const BookDonationPage = () => {
                   onClose={() => setShowFilterDropdown2(false)}
                 />
               )}
-              <div><text>Filter</text></div>
+              <div>
+                <span>Filter</span>
+              </div>
             </div>
           </div>
           <div className="item-card-container63696">
@@ -466,19 +523,68 @@ const BookDonationPage = () => {
                 <p>No donations from others at the moment.</p>
               </div>
             ) : (
-              othersDonations.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  currentUser={currentUser}
-                  onRemove={(id) => setItems(items.filter((item) => item.id !== id))}
-                  isMyDonation={false}
-                />
+              othersDonations.map(item => (
+                <ItemCard  userId={userId} key={item.id} item={item} isMyDonation={false} onRemove={removeDonation} onEdit={openEditModal} onRequest={(item) => alert(`Requesting ${item.name}`)} />
               ))
             )}
           </div>
         </div>
       </div>
+      {/* Edit Donation Modal */}
+      {isEditModalOpen && (
+        <div className="overlay63696" onClick={() => setIsEditModalOpen(false)}>
+          <div className="container63696" onClick={e => e.stopPropagation()}>
+            <h3 className="title63696">Edit Donation</h3>
+            <form onSubmit={handleEditItemSubmit} className="modal-form63696">
+              <div className="input-group63696">
+                <label>Item Name</label>
+                <input
+                  type="text"
+                  value={editItemName}
+                  onChange={e => setEditItemName(e.target.value)}
+                  placeholder="Enter item name"
+                  required
+                />
+              </div>
+              <div className="input-group63696">
+                <label>Item Type</label>
+                <select value={editItemType} onChange={e => setEditItemType(e.target.value)} required>
+                  <option value="Book">Book</option>
+                  <option value="Equipment">Equipment</option>
+                  <option value="Stationery">Stationery</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="input-group63696">
+                <label>Tags (comma-separated)</label>
+                <input
+                  type="text"
+                  value={editItemTags}
+                  onChange={e => setEditItemTags(e.target.value)}
+                  placeholder="e.g., Math, Science"
+                  required
+                />
+              </div>
+              <div className="input-group63696">
+                <label>Select Image</label>
+                <select value={editItemImage} onChange={e => setEditItemImage(e.target.value)} required>
+                  {picsumImages.map((img, index) => (
+                    <option key={index} value={img}>
+                      Image {index + 1}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="actions63696">
+                <button type="submit" className="add-btn63696">Update Item</button>
+                <button type="button" className="cancel-btn63696" onClick={() => setIsEditModalOpen(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -21,7 +21,7 @@ function Home1({ user, setUser }) {
     const token = localStorage.getItem('token');
   
     // Decode JWT to extract user ID
-    let userId = null;
+
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
@@ -57,7 +57,7 @@ function Home1({ user, setUser }) {
     };
 
     fetchAnnouncements();
-  }, [classId]); // Refetch when classId changes
+  }, [classId]); 
 
   return (
     <div className="app">
