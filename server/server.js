@@ -6,12 +6,14 @@ import Route from './routes/Route.js';
 import chatRoutes from './routes/chatRoutes.js';
 import classRoutes from './routes/classRoutes.js';
 import teacherRoutes from './routes/teacherRoutes.js';
+import donationRoutes from './routes/donationRoutes.js';
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+app.use('/api/donations', donationRoutes);
 const PORT = process.env.PORT || 5000;
 app.use('/api/auth', Route);
 app.use('/api/chat', chatRoutes);
