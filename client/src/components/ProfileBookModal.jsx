@@ -11,7 +11,7 @@ function ProfileBookModal({ onClose, profileData }) {
   return (
     <div className="profile-modal-overlay" onClick={onClose}>
       <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
-      <div className="book">
+        <div className="book">
           <div className="page left">
             <div className="header-container">
               <h2>Personal Details</h2>
@@ -35,6 +35,7 @@ function ProfileBookModal({ onClose, profileData }) {
             <div className="header-container">
               <h2>Academic Details</h2>
             </div>
+            <p><strong>Class:</strong> {profileData.className}</p>
             <p><strong>Tests Attempted:</strong> {profileData.testsAttempted}</p>
             <p><strong>Average Score:</strong> {profileData.averageScore}</p>
             <p><strong>Other Info:</strong> {profileData.otherInfo}</p>
