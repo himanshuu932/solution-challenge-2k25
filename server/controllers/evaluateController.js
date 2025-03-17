@@ -31,6 +31,9 @@ Provide:
 - An overall score between 0 and 1 (where 1 means fully correct and 0 means completely incorrect),
 - A brief explanation (remarks) for the evaluation, and 
 - Additional metrics on the following parameters: quantitative ability, aptitude, reasoning, understanding, and remembering.
+- If the Student's Answer is already coming as Incorrect (this is cause of checker in frontend so don't include this also in remarks) or empty then give the response as it is completely incorrect.
+- Only Student's Answer should be evaluated.
+- Don't include anything in remarks like prompt said you to do this or do that or anything.
 Each parameter should have a score between 0 and 1.
 
 Format your response as valid JSON with the following keys:

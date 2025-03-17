@@ -23,37 +23,49 @@ export const testController = async (req, res) => {
 };
 
 export const saveTestDetails = async (req, res) => {
-  try {
-    // Expecting: { userId, testId, status, score, attemptedAt? }
-    const { userId, testId, status, score } = req.body;
-    console.log("Test Details:", req.body);
-    // If attemptedAt is not provided, default to the current date/time
-    const attemptedAt = req.body.attemptedAt || new Date();
+  const { userId, testId, status, score, totalQuestions, correctAnswers, incorrectAnswers, timeTaken, answers } = req.body;
 
-    // Find the user document
+  try {
+    // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Check if a test attempt with the same testId already exists in the user's tests array
-    const existingTestIndex = user.tests.findIndex(testAttempt => testAttempt.test.toString() === testId);
+    // Check if the test attempt already exists
+    const existingAttempt = user.tests.find((attempt) => attempt.test.toString() === testId);
 
-    if (existingTestIndex !== -1) {
-      // Update the existing test attempt with new details
-      user.tests[existingTestIndex].score = score;
-      user.tests[existingTestIndex].status = status;
-      user.tests[existingTestIndex].attemptedAt = attemptedAt;
+    if (existingAttempt) {
+      // Update the existing attempt
+      existingAttempt.status = status;
+      existingAttempt.score = score;
+      existingAttempt.totalQuestions = totalQuestions;
+      existingAttempt.correctAnswers = correctAnswers;
+      existingAttempt.incorrectAnswers = incorrectAnswers;
+      existingAttempt.timeTaken = timeTaken;
+      existingAttempt.answers = answers;
+      existingAttempt.attemptedAt = new Date();
     } else {
-      // Add a new test attempt object to the tests array
-      user.tests.push({ test: testId, status, score, attemptedAt });
+      // Add a new test attempt
+      user.tests.push({
+        test: testId,
+        status: status,
+        score: score,
+        totalQuestions: totalQuestions,
+        correctAnswers: correctAnswers,
+        incorrectAnswers: incorrectAnswers,
+        timeTaken: timeTaken,
+        answers: answers,
+        attemptedAt: new Date()
+      });
     }
 
+    // Save the updated user document
     await user.save();
-    res.status(200).json({ success: true, tests: user.tests });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Failed to save test details." });
+    res.status(200).json({ success: true, message: 'Test attempt updated successfully' });
+  } catch (error) {
+    console.error('Error updating test details:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 

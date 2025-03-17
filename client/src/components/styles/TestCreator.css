@@ -232,6 +232,135 @@
     background-color: #0056b3;
 }
 
+/* Teacher Tests Section */
+.teacher-tests-section {
+    margin-top: 2rem;
+  }
+  
+  .test-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .test-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 1rem;
+    width: 200px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 20px;
+  }
+  
+  .test-card:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* Test Details Modal */
+  .test-details-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    overflow-y: auto;
+  }
+  
+  .test-details-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .close-details-btn {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .close-details-btn:hover {
+    background-color: #ff1a1a;
+  }
+
+  .attempted-by-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .attempted-by-section h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #333333;
+  }
+  
+  .attempted-by-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .attempted-by-list li {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    color: #333333;
+  }
+
+  .student-performance-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .student-performance-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .close-performance-btn {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .close-performance-btn:hover {
+    background-color: #ff1a1a;
+  }
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .test-creator-container {

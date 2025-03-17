@@ -9,6 +9,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSub
   const [answers, setAnswers] = useState(Array(initialQuestions.length).fill(null));
   const [visited, setVisited] = useState(Array(initialQuestions.length).fill(false));
   const [timeLeft, setTimeLeft] = useState(15); // seconds for demo
+  const [timeTaken, setTimeTaken] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [currentReview, setCurrentReview] = useState(0);
@@ -34,6 +35,7 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSub
     if (submitted || timeLeft === 0) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+      setTimeTaken((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(timer);
   }, [timeLeft, submitted]);
@@ -67,21 +69,34 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSub
     setSubmitted(true);
     const calculatedScore = calculateScore();
     setScore(calculatedScore);
-    setCurrentReview(0);
+
+    // Prepare the payload for the backend
+    const payload = {
+      userId,
+      testId,
+      status: 'attempted',
+      score: calculatedScore,
+      totalQuestions: questions.length,
+      correctAnswers: calculatedScore,
+      incorrectAnswers: questions.length - calculatedScore,
+      timeTaken,
+      answers: questions.map((q, idx) => ({
+        questionId: q._id || q.id || idx,
+        selectedOption: answers[idx] !== null ? q.options[answers[idx]]?.label : null,
+        isCorrect: q.options[answers[idx]]?.label === q.correctAnswer
+      }))
+    };
 
     try {
-      await axios.post("/api/auth/test-details", {
-        userId,
-        testId,
-        status: "attempted",
-        score: calculatedScore,
-        attemptedAt: new Date(),
+      await axios.post('http://localhost:5000/api/auth/test-details', payload);
+      console.log('Test attempt saved successfully');
+
+      await axios.post(`/api/auth/tests/${testId}/attempt`, {
+        studentId: userId, // Pass the student's ID
       });
     } catch (error) {
-      console.error("Error updating test details", error);
+      console.error('Error saving test attempt:', error);
     }
-    
-    if (onSubmit) onSubmit(calculatedScore);
   };
 
   const calculateScore = () => {

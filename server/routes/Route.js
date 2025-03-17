@@ -4,6 +4,7 @@ import { generateQuestion } from '../controllers/questionController.js';
 import { testController, saveTestDetails, fetchTestDetails } from '../controllers/testController.js';
 import { evaluateController } from '../controllers/evaluateController.js';
 import { selfEvaluationController } from '../controllers/selfEvaluationController.js';
+import User from '../models/User.js';
 import test from '../models/test.js';
 
 const router = express.Router();
@@ -19,14 +20,106 @@ router.get('/:userId/notifications', getNotifications);
 router.delete('/:userId/notifications/:notificationId', deleteNotification);
 
 router.get("/tests", async (req, res) => {
-    try {
-      // Fetch all tests from the database
-      const tests = await test.find({}); // Adjust the query as needed
-      res.json({ success: true, tests });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, message: "Failed to fetch tests." });
+  try {
+    const { teacherId } = req.query;
+    console.log("this is the techer id coming from : "+teacherId);
+
+    let tests;
+    if (teacherId) {
+      // Fetch tests created by the specific teacher
+      tests = await test.find({ teacherId });
+    } else {
+      // Fetch all tests (for students)
+      tests = await test.find({});
     }
+
+    res.json({ success: true, tests });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to fetch tests." });
+  }
+});
+
+
+router.post("/tests/:testId/attempt", async (req, res) => {
+  const { testId } = req.params;
+  const { studentId } = req.body; // Student ID should be passed in the request body
+
+  try {
+    // Find the test by ID
+    const Test = await test.findById(testId);
+    if (!Test) {
+      return res.status(404).json({ success: false, message: "Test not found." });
+    }
+
+    // Check if the student has already attempted the test
+    if (Test.attemptedBy.includes(studentId)) {
+      return res.status(400).json({ success: false, message: "Student has already attempted this test." });
+    }
+
+    // Add the student ID to the attemptedBy array
+    Test.attemptedBy.push(studentId);
+    await Test.save();
+
+    res.json({ success: true, message: "Test attempt recorded successfully." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to record test attempt." });
+  }
+});
+
+// routes/user.js
+router.post("/students", async (req, res) => {
+  const { studentIds } = req.body; // Array of student IDs
+
+  try {
+    const students = await User.find({ _id: { $in: studentIds } }, "username email"); // Fetch only username and email
+    res.json({ success: true, students });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to fetch student details." });
+  }
+});
+
+
+router.get("/student-performance", async (req, res) => {
+  try {
+    const { studentId, testId } = req.query;
+
+    // Fetch the student details
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    // Find the test performance for the specified test
+    const testPerformance = student.tests.find(
+      (test) => test.test.toString() === testId
+    );
+
+    if (!testPerformance) {
+      return res.status(404).json({ error: "Test performance not found" });
+    }
+
+    // Prepare the response
+    const response = {
+      studentName: student.username,
+      testId: testPerformance.test,
+      status: testPerformance.status,
+      score: testPerformance.score,
+      totalQuestions: testPerformance.totalQuestions,
+      correctAnswers: testPerformance.correctAnswers,
+      incorrectAnswers: testPerformance.incorrectAnswers,
+      attemptedAt: testPerformance.attemptedAt,
+      timeTaken: testPerformance.timeTaken,
+      answers: testPerformance.answers, // Array of question-wise performance
+    };
+
+    res.status(200).json({ performance: response });
+  } catch (err) {
+    console.error("Error fetching student performance:", err);
+    res.status(500).json({ error: "Failed to fetch student performance" });
+  }
 });
 
 // New routes for saving and fetching test attempt details

@@ -9,6 +9,7 @@ const TestSchema = new mongoose.Schema({
   numberOfQuestions: { type: Number, required: true },
   questions: { type: Array, required: true },
   teacherId: { type: String, required: true },
+  attemptedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Array of student IDs
   createdAt: { type: Date, default: Date.now },
 });
 
