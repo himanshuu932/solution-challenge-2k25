@@ -6,11 +6,12 @@ import "./styles/Navbar.css";
 import darkmode from "../icons/dark.png";
 import lightmode from "../icons/light.png";
 import l from "../icons/user.png"; // Assuming user image is here
-import { Home, MessageCircle, ClipboardList, Info, Heart, PlusCircle, BookOpenCheck } from 'lucide-react';
+import { Home, MessageCircle, ClipboardList, Info, Heart, PlusCircle, BookOpenCheck ,Bell} from 'lucide-react';
 import ProfileBookModal from "./ProfileBookModal"; // Ensure the path is correct
 import { jwtDecode } from 'jwt-decode';
+import DiscussionSection from "./Discussion";
 
-function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
+function Navbar({ setActiveScreen,isLoggedIn, user, setUser, isDarkMode, setIsDarkMode,toggleAnnouncementPanel,announcementCount }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isTestOpen, setIsTestOpen] = useState(false);
@@ -19,7 +20,10 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   const [hovered, setHovered] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [selectedNavItem, setSelectedNavItem] = useState(null); // Track selected nav item
   const profileRef = useRef(null);
+  const [isDiscussionDropdownOpen, setIsDiscussionDropdownOpen] = useState(false);
+
 
   // Adjust layout based on window size
   useEffect(() => {
@@ -52,6 +56,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     console.log("Attempting to log out...");
     localStorage.removeItem("token");
     setUser(null);
+    setSelectedNavItem(null); // Reset selected navigation item on logout
     console.log("Logout successful.");
     window.location.reload();
   };
@@ -93,9 +98,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
 
   const navItems = [
     { id: 1, name: 'Home', icon: <Home /> },
-    { id: 2, name: 'Discussion', icon: <MessageCircle /> },
     { id: 3, name: 'Test', icon: <ClipboardList /> },
-    { id: 4, name: 'About Us', icon: <Info /> },
     { id: 5, name: 'Donate', icon: <Heart /> },
     { id: 7, name: 'Self Evaluation', icon: <BookOpenCheck /> }
   ];
@@ -105,6 +108,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     setIsTestOpen(false);
     setIsTestCreatorOpen(false);
     setIsMobileMenuOpen(false);
+    setSelectedNavItem(screen); // Set the selected navigation item
 
     if (screen === 3) {
       setIsTestOpen(true);
@@ -143,7 +147,17 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
               <rect y="60" width="100" height="10"></rect>
             </svg>
           </div>
-          <div className="navbar-brand">[Name]</div>
+          <div className="navbar-brand"> <span
+              style={{
+                background: "linear-gradient(to right, #ff5900, #ff9500)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                display: "inline-block",
+                fontSize: 34,
+              }}
+            >
+              TeachEase
+            </span></div>
         </div>
 
         {/* Center Navigation Links */}
@@ -151,7 +165,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
           {navItems.map((item) => (
             <li
               key={item.id}
-              className="nav-item"
+              className={`nav-item ${selectedNavItem === item.id ? 'selected' : ''}`}
               onMouseEnter={() => setHovered(item.id)}
               onMouseLeave={() => setHovered(null)}
               onClick={() => handleNavClick(item.id)}
@@ -164,7 +178,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
           ))}
           {/* Navigation Item for Test Creator */}
           <li
-            className="nav-item"
+            className={`nav-item ${selectedNavItem === 6 ? 'selected' : ''}`}
             onMouseEnter={() => setHovered(6)}
             onMouseLeave={() => setHovered(null)}
             onClick={() => handleNavClick(6)}
@@ -177,7 +191,28 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
         </ul>
 
         {/* Right Section: Mode Toggle, Profile, and Logout */}
-        <div className="navbar-right">
+       {isLoggedIn && <div className="navbar-right">
+          {/* Bell Icon for Announcements */}
+          <div className="announcement-bell" onClick={toggleAnnouncementPanel}>
+            <Bell />
+            {announcementCount > 0 && (
+              <span className="announcement-badge">{announcementCount}</span>
+            )}
+          </div>
+          <div
+            className="discussion-icon"
+            onClick={() => setIsDiscussionDropdownOpen(!isDiscussionDropdownOpen)}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              style={{ cursor: "pointer" }}
+            >
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+            </svg>
+          </div>
           <img
             src={isDarkMode ? lightmode : darkmode}
             alt={isDarkMode ? 'Light Mode' : 'Dark Mode'}
@@ -199,7 +234,11 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
                 <div className="profile-username">{fullFirstName}</div>
                 <button 
                   className="view-profile-btn" 
-                  onClick={handleViewProfile}
+                  onClick={() => { 
+                    console.log("View Profile Clicked"); 
+                    setIsProfileModalOpen(true);
+                    setIsProfileDropdownOpen(false); // Close the dropdown
+                  }}
                 >
                   View Your Profile
                 </button>
@@ -207,8 +246,25 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
               </div>
             )}
           </div>
-        </div>
+          <div className={`discussion-dropdown ${isDiscussionDropdownOpen ? 'open' : ''}`}>
+            <DiscussionSection />
+          </div>
+        </div>}
+        {!isLoggedIn && <div className="navbar-right">
+          
+       
+          <img
+            src={isDarkMode ? lightmode : darkmode}
+            alt={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            className="mode-toggle icon-image"
+            onClick={toggleTheme}
+          />
+          <button className="signinButton" >Sign In</button>
+         
+        </div>}
+        
       </nav>
+
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
@@ -217,7 +273,6 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
             <li><a onClick={() => handleNavClick(1)}>Home</a></li>
             <li><a onClick={() => handleNavClick(2)}>Documents</a></li>
             <li><a onClick={() => handleNavClick(3)}>Chat</a></li>
-            <li><a onClick={() => handleNavClick(4)}>About Us</a></li>
             <li><a onClick={() => handleNavClick(6)}>Create Test</a></li>
           </ul>
         </div>

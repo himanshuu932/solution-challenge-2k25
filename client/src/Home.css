@@ -1,28 +1,5 @@
-/* App container styles */
-body {
-  background-image: url('./bg-image.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
 
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-}
 
-body.dark-mode {
-  overflow: hidden;
-}
-
-.app {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-  }
-  
   /* xyz container styles */
   .xyz {
     display: flex;
@@ -262,4 +239,7 @@ body.dark-mode .announcement-item:hover {
 .announcement-item.expanded {
   background-color: #e0f7fa;
   transition: background-color 0.3s ease;
+}
+.announcement-text{
+    color: black;
 }

@@ -174,7 +174,7 @@ const Auth = ({user,setUser}) => {
 
   // If logged in, show the Home component
   if (isLoggedIn) {
-    return <Home user={user} setUser={setUser} token={localStorage.getItem('token')}/>;
+    return <Home user={user} isLoggedIn={isLoggedIn} setUser={setUser} token={localStorage.getItem('token')}/>;
   }
 
   // Otherwise, show the authentication forms

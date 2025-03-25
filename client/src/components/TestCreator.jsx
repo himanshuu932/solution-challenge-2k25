@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./styles/TestCreator.css"; // Ensure this CSS file is updated
+import "./styles/TestCreator.css";
 
 function TestCreator({ teacherId, onClose }) {
   const [testName, setTestName] = useState("");
@@ -8,17 +8,18 @@ function TestCreator({ teacherId, onClose }) {
   const [type, setType] = useState("multiple-choice");
   const [level, setLevel] = useState("");
   const [numberOfQuestions, setNumberOfQuestions] = useState("");
-  const [questions, setQuestions] = useState([]); // All generated questions
-  const [selectedQuestions, setSelectedQuestions] = useState([]); // Questions selected for the test
+  const [questions, setQuestions] = useState([]);
+  const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [testCreated, setTestCreated] = useState(false);
-  const [isSaving, setIsSaving] = useState(false); // Loading state for saving
-  const [showSummary, setShowSummary] = useState(false); // Toggle summary view
-  const [teacherTests, setTeacherTests] = useState([]); // All tests created by the teacher
-  const [selectedTest, setSelectedTest] = useState(null); // Selected test for detailed view
-  const [selectedStudentPerformance, setSelectedStudentPerformance] =
-    useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [teacherTests, setTeacherTests] = useState([]);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [selectedStudentPerformance, setSelectedStudentPerformance] = useState(null);
+  const [showCreateTestModal, setShowCreateTestModal] = useState(false);
+  const [showGeneratedQuestionsModal, setShowGeneratedQuestionsModal] = useState(false);
 
   // Fetch all tests created by the teacher
   useEffect(() => {
@@ -34,9 +35,26 @@ function TestCreator({ teacherId, onClose }) {
     };
 
     fetchTeacherTests();
-  }, [teacherId, testCreated]); // Refetch tests when a new test is created
+  }, [teacherId, testCreated]);
 
-  // Function to generate questions using the QuestionGenerator API
+  // Open the Create Test modal
+  const openCreateTestModal = () => {
+    setShowCreateTestModal(true);
+  };
+
+  // Close the Create Test modal
+  const closeCreateTestModal = () => {
+    setShowCreateTestModal(false);
+    setTestName("");
+    setTopic("");
+    setLevel("");
+    setNumberOfQuestions("");
+    setQuestions([]);
+    setSelectedQuestions([]);
+    setError(null);
+  };
+
+  // Generate questions
   const generateQuestions = async () => {
     setLoading(true);
     setError(null);
@@ -47,14 +65,16 @@ function TestCreator({ teacherId, onClose }) {
           topic,
           type,
           level,
-          Number: numberOfQuestions, // ensure your backend expects this parameter name
+          Number: numberOfQuestions,
         }
       );
 
       if (response.data && Array.isArray(response.data.questions)) {
         setQuestions(response.data.questions);
+        setShowGeneratedQuestionsModal(true); // Show modal with generated questions
       } else if (response.data && response.data.question) {
         setQuestions([response.data.question]);
+        setShowGeneratedQuestionsModal(true); // Show modal with generated questions
       } else {
         setError("Invalid response format from the server.");
       }
@@ -121,6 +141,7 @@ function TestCreator({ teacherId, onClose }) {
         setQuestions([]);
         setSelectedQuestions([]);
         setShowSummary(false);
+        closeCreateTestModal();
       }
     } catch (err) {
       setError("Failed to save the test. Please try again.");
@@ -130,11 +151,7 @@ function TestCreator({ teacherId, onClose }) {
     }
   };
 
-  // Toggle summary view
-  const toggleSummary = () => {
-    setShowSummary(!showSummary);
-  };
-
+  // Fetch student performance
   const fetchStudentPerformance = async (studentId, testId) => {
     try {
       const response = await axios.get(
@@ -156,106 +173,146 @@ function TestCreator({ teacherId, onClose }) {
   // View details of a specific test
   const viewTestDetails = async (test) => {
     try {
-      // Fetch all tests for the teacher
       const testResponse = await axios.get(
         `http://localhost:5000/api/auth/tests?teacherId=${teacherId}`
       );
-      console.log("API Response:", testResponse.data.tests); // Log the entire tests array for debugging
-
-      // Check if the response contains the expected data
       if (!testResponse.data || !testResponse.data.tests) {
         throw new Error("Test data not found in the response.");
       }
 
-      // Find the selected test in the tests array
       const selectedTest = testResponse.data.tests.find(
         (t) => t._id === test._id
       );
 
-      // Check if the selected test was found
       if (!selectedTest) {
         throw new Error("Selected test not found in the response.");
       }
 
-      // Check if the selectedTest has the attemptedBy property
       if (selectedTest.attemptedBy && selectedTest.attemptedBy.length > 0) {
-        // Fetch student details for the attemptedBy array
         const studentsResponse = await axios.post(
           "http://localhost:5000/api/auth/students",
           {
-            studentIds: selectedTest.attemptedBy, // Send the array of student IDs
+            studentIds: selectedTest.attemptedBy,
           }
         );
 
-        // Add student details to the test object
         selectedTest.students = studentsResponse.data.students;
       }
 
-      // Set the selected test with student details
       setSelectedTest(selectedTest);
     } catch (err) {
       console.error("Failed to fetch test or student details:", err);
       setError("Failed to fetch test details. Please try again.");
     }
   };
+
   // Close the detailed view
   const closeTestDetails = () => {
     setSelectedTest(null);
   };
 
   return (
-    <div className="test-creator-container">
-      <h2>Create a New Test</h2>
-      <div className="input-group">
-        <input
-          type="text"
-          placeholder="Test Name"
-          value={testName}
-          onChange={(e) => setTestName(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Enter topic"
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          required
-        />
-        <select value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="multiple-choice">Multiple Choice</option>
-          <option value="short-answer">Short Answer</option>
-          <option value="long-answer">Long Answer</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Enter class/level"
-          value={level}
-          onChange={(e) => setLevel(e.target.value)}
-          required
-        />
-        <input
-          type="number"
-          placeholder="Number of questions to generate"
-          value={numberOfQuestions}
-          onChange={(e) => setNumberOfQuestions(e.target.value)}
-          required
-        />
+    <div className="assessment-container">
+<div className="test-creator-container">
+  {/* Header and Create Button */}
+  <div className="teacher-tests-header">
+    <h3>Your Test Library</h3>
+    <button className="create-new-test-btn" onClick={openCreateTestModal}>
+      <span className="icon">+</span> Create New Test
+    </button>
+  </div>
+
+  {/* Teacher Tests Section */}
+  <div className="teacher-tests-section">
+    {teacherTests.length > 0 ? (
+      <div className="test-cards">
+        {teacherTests.map((test) => (
+          <div
+            key={test._id}
+            className="test-card"
+            onClick={() => viewTestDetails(test)}
+          >
+            <h4>{test.testName}</h4>
+            <p><span className="label">Topic:</span> {test.topic}</p>
+            <p><span className="label">Type:</span> {test.type}</p>
+            <p><span className="label">Level:</span> {test.level}</p>
+            <p><span className="label">Questions:</span> {test.numberOfQuestions}</p>
+          </div>
+        ))}
       </div>
+    ) : (
+      <p className="no-tests-message">No tests created yet. Start by creating one!</p>
+    )}
+  </div>
 
-      <button
-        className="generate-btn"
-        onClick={generateQuestions}
-        disabled={loading}
-      >
-        {loading ? "Generating..." : "Generate Questions"}
-      </button>
+  {/* Create Test Modal */}
+  {showCreateTestModal && (
+    <div className="create-test-modal">
+      <div className="create-test-content">
+        <button className="close-modal-btn" onClick={closeCreateTestModal}>
+          &times;
+        </button>
+        <h2>Create a New Test</h2>
+        <div className="input-group">
+          <input
+            type="text"
+            placeholder="Test Name"
+            value={testName}
+            onChange={(e) => setTestName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Enter Topic"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            required
+          />
+          <select value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="multiple-choice">Multiple Choice</option>
+            <option value="short-answer">Short Answer</option>
+            <option value="long-answer">Long Answer</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Enter Class/Level"
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            required
+          />
+          <input
+            type="number"
+            placeholder="Number of Questions"
+            value={numberOfQuestions}
+            onChange={(e) => setNumberOfQuestions(e.target.value)}
+            required
+          />
+        </div>
+        <button
+          className="generate-btn"
+          onClick={generateQuestions}
+          disabled={loading}
+        >
+          {loading ? "Generating..." : "Generate Questions"}
+        </button>
+        {error && <p className="error-message">{error}</p>}
+      </div>
+    </div>
+  )}
 
-      {error && <p className="error-message">{error}</p>}
-
-      {/* Questions List */}
-      <div className="questions-list">
-        {questions.length > 0 ? (
-          questions.map((question, index) => (
+  {/* Generated Questions Modal */}
+  {showGeneratedQuestionsModal && (
+    <div className="generated-questions-modal">
+      <div className="generated-questions-content">
+        <button
+          className="close-modal-btn"
+          onClick={() => setShowGeneratedQuestionsModal(false)}
+        >
+          &times;
+        </button>
+        <h3>Generated Questions</h3>
+        <div className="questions-list">
+          {questions.map((question, index) => (
             <div
               key={index}
               className={`question-card ${
@@ -265,9 +322,7 @@ function TestCreator({ teacherId, onClose }) {
               }`}
               onClick={() => toggleQuestionSelection(index)}
             >
-              <h3>
-                Question {index + 1}: {question.question}
-              </h3>
+              <h3>Question {index + 1}: {question.question}</h3>
               {question.options && (
                 <ul className="options-list">
                   {question.options.map((option, idx) => (
@@ -281,197 +336,109 @@ function TestCreator({ teacherId, onClose }) {
                 <strong>Correct Answer:</strong> {question.correctAnswer}
               </div>
               <div className="explanation">
-                <strong>Explanation:</strong>{" "}
-                {question.explanation?.correct || "No explanation provided."}
+                <strong>Explanation:</strong> {question.explanation?.correct || "No explanation provided."}
               </div>
             </div>
-          ))
-        ) : (
-          <p>No questions generated yet.</p>
-        )}
+          ))}
+        </div>
+        <button className="save-test-btn" onClick={saveTest} disabled={isSaving}>
+          {isSaving ? "Saving..." : `Save Test (${selectedQuestions.length} questions selected)`}
+        </button>
       </div>
-
-      {/* Selected Questions Summary and Save Test */}
-      {selectedQuestions.length > 0 && (
-        <div className="selected-actions">
-          <div className="summary-section">
-            <button className="summary-toggle-btn" onClick={toggleSummary}>
-              {showSummary ? "Hide Summary" : "Show Summary"}
-            </button>
-            {showSummary && (
-              <div className="selected-questions-summary">
-                <h3>Selected Questions</h3>
-                {selectedQuestions.map((question, index) => (
-                  <div key={index} className="summary-question-card">
-                    <h4>
-                      Question {index + 1}: {question.question}
-                    </h4>
-                    <div className="correct-answer">
-                      <strong>Correct Answer:</strong> {question.correctAnswer}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Instructional message */}
-          <p className="instruction-message">
-            Review your selected questions above. When you're ready, click "Save
-            Test" to store your test.
-          </p>
-          {/* Save Test Button */}
-          <button
-            className="save-test-btn"
-            onClick={saveTest}
-            disabled={isSaving}
-          >
-            {isSaving
-              ? "Saving..."
-              : `Save Test (${selectedQuestions.length} questions selected)`}
-          </button>
-        </div>
-      )}
-
-      {/* Success Message */}
-      {testCreated && (
-        <div className="success-message">
-          <p>Test created successfully!</p>
-          <button
-            className="create-another-btn"
-            onClick={() => setTestCreated(false)}
-          >
-            Create Another Test
-          </button>
-          <button className="close-btn" onClick={onClose}>
-            Close
-          </button>
-        </div>
-      )}
-
-      {/* Display all tests created by the teacher */}
-      <div className="teacher-tests-section">
-        <h3>Your Created Tests</h3>
-        {teacherTests.length > 0 ? (
-          <div className="test-cards">
-            {teacherTests.map((test) => (
-              <div
-                key={test._id}
-                className="test-card"
-                onClick={() => viewTestDetails(test)}
-              >
-                <h4>{test.testName}</h4>
-                <p>Topic: {test.topic}</p>
-                <p>Type: {test.type}</p>
-                <p>Level: {test.level}</p>
-                <p>Questions: {test.numberOfQuestions}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>No tests created yet.</p>
-        )}
-      </div>
-
-      {/* Detailed view of a selected test */}
-      {selectedTest && (
-        <div className="test-details-modal">
-          <div className="test-details-content">
-            <h3>Test Details: {selectedTest.testName}</h3>
-            <p>Topic: {selectedTest.topic}</p>
-            <p>Type: {selectedTest.type}</p>
-            <p>Level: {selectedTest.level}</p>
-            <p>Number of Questions: {selectedTest.numberOfQuestions}</p>
-            <h4>Questions:</h4>
-
-            {/* Display the list of students who attempted the test */}
-            {selectedTest.students && selectedTest.students.length > 0 && (
-              <div className="attempted-by-section">
-                <h4>Students Who Attempted This Test:</h4>
-                <ul className="attempted-by-list">
-                  {selectedTest.students.map((student, index) => (
-                    <li
-                      key={index}
-                      onClick={() =>
-                        fetchStudentPerformance(student._id, selectedTest._id)
-                      }
-                      style={{ cursor: "pointer" }}
-                    >
-                      {student.name} ({student.email})
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {selectedTest.questions.map((question, index) => (
-              <div key={index} className="question-detail">
-                <h5>
-                  Question {index + 1}: {question.question}
-                </h5>
-                {question.options && (
-                  <ul className="options-list">
-                    {question.options.map((option, idx) => (
-                      <li key={idx}>
-                        <strong>{option.label}:</strong> {option.text}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <p>
-                  <strong>Correct Answer:</strong> {question.correctAnswer}
-                </p>
-                <p>
-                  <strong>Explanation:</strong>{" "}
-                  {question.explanation?.correct || "No explanation provided."}
-                </p>
-              </div>
-            ))}
-            <button className="close-details-btn" onClick={closeTestDetails}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {selectedStudentPerformance && (
-        <div className="student-performance-modal">
-          <div className="student-performance-content">
-            <h3>Performance of {selectedStudentPerformance.studentName}</h3>
-            <p>Test ID: {selectedStudentPerformance.testId}</p>
-            <p>Status: {selectedStudentPerformance.status}</p>
-            <p>Score: {selectedStudentPerformance.score}</p>
-            <p>Total Questions: {selectedStudentPerformance.totalQuestions}</p>
-            <p>Correct Answers: {selectedStudentPerformance.correctAnswers}</p>
-            <p>
-              Incorrect Answers: {selectedStudentPerformance.incorrectAnswers}
-            </p>
-            <p>
-              Attempted At:{" "}
-              {new Date(
-                selectedStudentPerformance.attemptedAt
-              ).toLocaleString()}
-            </p>
-            <p>Time Taken: {selectedStudentPerformance.timeTaken} seconds</p>
-            <h4>Answers:</h4>
-            <ul>
-              {selectedStudentPerformance.answers.map((answer, index) => (
-                <li key={index}>
-                  <p>Question {answer.questionId + 1}:</p>
-                  <p>Selected Option: {answer.selectedOption}</p>
-                  <p>Correct: {answer.isCorrect ? "Yes" : "No"}</p>
-                </li>
-              ))}
-            </ul>
-            <button
-              className="close-performance-btn"
-              onClick={() => setSelectedStudentPerformance(null)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
+  )}
+  {/* Test Details Modal */}
+{selectedTest && (
+  <div className="test-details-modal">
+    <div className="test-details-content">
+      <button className="close-modal-btn" onClick={closeTestDetails}>
+        &times;
+      </button>
+      <h3>Test Details: {selectedTest.testName}</h3>
+      <div className="test-meta">
+        <p><span className="label">Topic:</span> {selectedTest.topic}</p>
+        <p><span className="label">Type:</span> {selectedTest.type}</p>
+        <p><span className="label">Level:</span> {selectedTest.level}</p>
+        <p><span className="label">Questions:</span> {selectedTest.numberOfQuestions}</p>
+      </div>
+      {selectedTest.students && selectedTest.students.length > 0 && (
+        <div className="attempted-by-section">
+  <h4>Students Who Attempted This Test:</h4>
+  <ul className="attempted-by-list">
+    {selectedTest.students.map((student, index) => (
+      <li
+        key={index}
+        onClick={() => fetchStudentPerformance(student._id, selectedTest._id)}
+        className="student-link"
+      >
+        <span>{student.name}</span>
+        <span className="email">{student.email}</span>
+      </li>
+    ))}
+  </ul>
+</div>
+      )}
+
+      <h4>Questions:</h4>
+      <div className="questions-list">
+        {selectedTest.questions.map((question, index) => (
+          <div key={index} className="question-detail">
+            <h5>Question {index + 1}: {question.question}</h5>
+            {question.options && (
+              <ul className="options-list">
+                {question.options.map((option, idx) => (
+                  <li key={idx}>
+                    <strong>{option.label}:</strong> {option.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p><strong>Correct Answer:</strong> {question.correctAnswer}</p>
+            <p><strong>Explanation:</strong> {question.explanation?.correct || "No explanation provided."}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
+
+{/* Student Performance Modal */}
+{selectedStudentPerformance && (
+  <div className="student-performance-modal">
+    <div className="student-performance-content">
+      <button
+        className="close-modal-btn"
+        onClick={() => setSelectedStudentPerformance(null)}
+      >
+        &times;
+      </button>
+      <h3>Performance of {selectedStudentPerformance.studentName}</h3>
+      <div className="performance-meta">
+        <p><span className="label">Test ID:</span> {selectedStudentPerformance.testId}</p>
+        <p><span className="label">Status:</span> {selectedStudentPerformance.status}</p>
+        <p><span className="label">Score:</span> {selectedStudentPerformance.score}</p>
+        <p><span className="label">Total Questions:</span> {selectedStudentPerformance.totalQuestions}</p>
+        <p><span className="label">Correct Answers:</span> {selectedStudentPerformance.correctAnswers}</p>
+        <p><span className="label">Incorrect Answers:</span> {selectedStudentPerformance.incorrectAnswers}</p>
+        <p><span className="label">Attempted At:</span> {new Date(selectedStudentPerformance.attemptedAt).toLocaleString()}</p>
+        <p><span className="label">Time Taken:</span> {selectedStudentPerformance.timeTaken} seconds</p>
+      </div>
+
+      <h4>Answers:</h4>
+      <ul className="answers-list">
+        {selectedStudentPerformance.answers.map((answer, index) => (
+          <li key={index} className="answer-item">
+            <p><strong>Question {answer.questionId + 1}:</strong></p>
+            <p>Selected Option: {answer.selectedOption}</p>
+            <p>Correct: {answer.isCorrect ? "Yes" : "No"}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+)}
+</div>
+</div>
   );
 }
 

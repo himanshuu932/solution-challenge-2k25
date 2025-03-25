@@ -8,15 +8,19 @@ import TestComponent from "./components/TestComponent";
 import TestCreator from "./components/TestCreator";
 import AboutUs from "./components/AboutUs";
 import { jwtDecode } from 'jwt-decode';
+import HeroSection from "./components/HeroSection";
 
-function Home1({ user, setUser }) {
+function Home1({ user, setUser ,isLoggedIn}) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const savedScreen = localStorage.getItem("activeScreen");
   const [activeScreen, setActiveScreen] = useState(savedScreen ? parseInt(savedScreen) : 1);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // New state: show/hide announcement panel
+  const [showAnnouncements, setShowAnnouncements] = useState(false);
   const body = document.body;
+  
   // Assuming classId is stored in the user object
   let classId = null;
   const token = localStorage.getItem('token');
@@ -87,6 +91,11 @@ function Home1({ user, setUser }) {
     setAnnouncements((prev) => prev.filter((_, idx) => idx !== index));
   };
 
+  // Toggle the announcement panel visibility
+  const toggleAnnouncementPanel = () => {
+    setShowAnnouncements(!showAnnouncements);
+  };
+
   return (
     <div className="app">
       <Navbar
@@ -95,9 +104,14 @@ function Home1({ user, setUser }) {
         setUser={setUser}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
+        // Pass the announcement count and toggle function to Navbar
+        announcementCount={announcements.length}
+        toggleAnnouncementPanel={toggleAnnouncementPanel}
+        isLoggedIn={isLoggedIn}
       />
 
-      {activeScreen === 1 && (
+      {/* Announcements Panel (only appears when toggled by the bell icon) */}
+      {showAnnouncements && (
         <div className="announcement-section">
           <h2 className="announcement-title">Announcements</h2>
           {loading ? (
@@ -151,9 +165,10 @@ function Home1({ user, setUser }) {
           )}
         </div>
       )}
-
+      
+      {activeScreen === 1 && <HeroSection/>}
       {activeScreen === 2 && <DiscussionSection />}
-      {activeScreen === 3 && <TestComponent/>}
+      {activeScreen === 3 && <TestComponent />}
       {activeScreen === 4 && <AboutUs />}
       {activeScreen === 5 && <BookDonationPage />}
       {activeScreen === 7 && <SelfEvaluation />}

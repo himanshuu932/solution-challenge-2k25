@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import './styles/DiscussionSection.css'; // Import external CSS
 
 const DiscussionSection = () => {
   const token = localStorage.getItem('token');
@@ -75,39 +76,37 @@ const DiscussionSection = () => {
   };
 
   return (
-    <div className="discussion-section" style={{ maxWidth: '600px', margin: 'auto', padding: '10px' }}>
-      <h2>Discussion Section</h2>
-      <div className="discussion-messages" style={{ border: '1px solid #ccc', height: '300px', overflowY: 'scroll', padding: '10px', marginBottom: '10px', display: 'flex', flexDirection: 'column' }}>
+    <div className="discussion-section">
+      <h2 className="discussion-title">Discussion Section</h2>
+      <div className="discussion-messages">
         {messages.length === 0 ? (
-          <p>No messages yet.</p>
+          <p className="no-messages">No messages yet. Start the conversation!</p>
         ) : (
           messages.map((msg) => (
-            <div key={msg._id} style={{
-              alignSelf: msg.sender === userId ? 'flex-end' : 'flex-start',
-              backgroundColor: msg.sender === userId ? '#DCF8C6' : '#EAEAEA',
-              padding: '10px',
-              borderRadius: '10px',
-              marginBottom: '5px',
-              maxWidth: '70%',
-            }}>
+            <div
+              key={msg._id}
+              className={`message ${msg.sender === userId ? 'self' : 'other'}`}
+            >
               <strong>{msg.sender === userId ? 'You' : msg.senderName}:</strong> {msg.message}
               <br />
-              <small style={{ fontSize: '0.8em', color: '#555' }}>{new Date(msg.createdAt).toLocaleTimeString()}</small>
+              <small>{new Date(msg.createdAt).toLocaleTimeString()}</small>
             </div>
           ))
         )}
       </div>
-      <form onSubmit={handleSendMessage} style={{ display: 'flex' }}>
+      <form onSubmit={handleSendMessage} className="message-form">
         <input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type your message..."
-          style={{ flex: 1, padding: '8px' }}
+          className="message-input"
         />
-        <button type="submit" style={{ padding: '8px 16px', marginLeft: '8px' }}>Send</button>
+        <button type="submit" className="send-button">
+          Send
+        </button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="error-message">{error}</p>}
     </div>
   );
 };
