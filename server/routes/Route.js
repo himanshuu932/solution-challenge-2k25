@@ -1,4 +1,5 @@
 import express from 'express';
+import multer from 'multer';
 import { signup, login, getNotifications,deleteNotification,getProfile } from '../controllers/authControllers.js';
 import { generateQuestion } from '../controllers/questionController.js';
 import { testController, saveTestDetails, fetchTestDetails } from '../controllers/testController.js';
@@ -6,6 +7,8 @@ import { evaluateController } from '../controllers/evaluateController.js';
 import { selfEvaluationController } from '../controllers/selfEvaluationController.js';
 import User from '../models/User.js';
 import test from '../models/test.js';
+import { handlePdfUpload } from '../controllers/pdfhandler.js';
+import { examevaluateController } from '../controllers/examevaluateController.js';
 
 const router = express.Router();
 
@@ -19,6 +22,21 @@ router.post('/selfEvaluation', selfEvaluationController);
 router.get('/:userId/notifications', getNotifications);
 // DELETE notification route: DELETE /api/auth/:userId/notifications/:notificationId
 router.delete('/:userId/notifications/:notificationId', deleteNotification);
+
+
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Save files in the 'uploads' directory
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname); // Unique filename
+  },
+});
+
+const upload = multer({ storage });
+
 
 router.get("/tests", async (req, res) => {
   try {
@@ -122,6 +140,36 @@ router.get("/student-performance", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch student performance" });
   }
 });
+
+
+router.post('/upload-pdf', upload.single('file'), async (req, res) => {
+  try {
+    const { studentId } = req.body; // Assuming the student ID is available in the request
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded." });
+    }
+   // console.log("this is the student id coming:", studentId);
+    const result = await handlePdfUpload(file, studentId);
+    res.json(result);
+  } catch (error) {
+    console.error("Error in /upload-pdf:", error);
+    res.status(500).json({ error: "Failed to process file." });
+  }
+});
+
+router.post(
+  "/exam-evaluate",
+  upload.fields([
+    { name: "questionFile", maxCount: 1 },
+    { name: "studentAnswerFile", maxCount: 1 },
+    { name: "correctAnswerFile", maxCount: 1 },
+  ]),
+  examevaluateController
+);
+
+
 
 // New routes for saving and fetching test attempt details
 router.post("/test-details", saveTestDetails);

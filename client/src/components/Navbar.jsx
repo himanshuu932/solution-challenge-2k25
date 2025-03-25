@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import TestComponent from "./TestComponent";
 import TestCreator from "./TestCreator";
+import Evaluate from "./examevaluate";
 import "./styles/Navbar.css";
 import darkmode from "../icons/dark.png";
 import lightmode from "../icons/light.png";
@@ -19,6 +20,7 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
   const [hovered, setHovered] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [isEvaluateOpen, setIsEvaluateOpen] = useState(false);
   const profileRef = useRef(null);
 
   // Adjust layout based on window size
@@ -97,7 +99,9 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     { id: 3, name: 'Test', icon: <ClipboardList /> },
     { id: 4, name: 'About Us', icon: <Info /> },
     { id: 5, name: 'Donate', icon: <Heart /> },
-    { id: 7, name: 'Self Evaluation', icon: <BookOpenCheck /> }
+    { id: 7, name: 'Self Evaluation', icon: <BookOpenCheck /> },
+    { id: 8, name: 'Evaluate', icon: <BookOpenCheck /> } 
+   
   ];
 
   // Handle navigation clicks and toggle related components
@@ -112,7 +116,12 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
     } else if (screen === 6) {
       setIsTestCreatorOpen(true);
       setActiveScreen(null);
-    } else {
+    } 
+    else if (screen === 8) {
+      setIsEvaluateOpen(true); // Open Evaluate component
+      setActiveScreen(null);
+    }
+    else {
       setActiveScreen(screen);
     }
   };
@@ -233,6 +242,13 @@ function Navbar({ setActiveScreen, user, setUser, isDarkMode, setIsDarkMode }) {
           teacherId={user}
         />
       )}
+
+{isEvaluateOpen && (
+  <Evaluate
+    onClose={() => setIsEvaluateOpen(false)}
+    teacherId={user} // Pass the teacherId to the Evaluate component
+  />
+)}
 
       {/* Profile Book Modal */}
       {isProfileModalOpen && (

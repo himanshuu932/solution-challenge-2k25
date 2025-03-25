@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 import "./styles/SelfEvaluation.css";
-import Latex from 'react-latex';// For rendering LaTeX formulas
-import "katex/dist/katex.min.css"; // Import KaTeX CSS
+import Latex from 'react-latex';
+import "katex/dist/katex.min.css";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { darcula } from "react-syntax-highlighter/dist/esm/styles/prism";
-
 
 export default function SelfEvaluation() {
   const [question, setQuestion] = useState("Select a question");
@@ -17,6 +17,24 @@ export default function SelfEvaluation() {
   const [selectedQuestionNumber, setSelectedQuestionNumber] = useState(1);
   const [visited, setVisited] = useState(Array(4).fill(false));
   const [answers, setAnswers] = useState(Array(4).fill(null));
+  const [file, setFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [extractedText, setExtractedText] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+
+let userId = null;
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      userId = decoded.id;
+    } catch (err) {
+      console.error("Error decoding token", err);
+    }
+  }
+
+  console.log("this is the user id "+userId);
 
   const questions = [
     "Explain SDG4 in one sentence?",
@@ -24,8 +42,6 @@ export default function SelfEvaluation() {
     "How can education help in sustainable development?",
     "Write an essay on SDG4.",
   ];
-
-
 
   const submitAnswer = () => {
     setFeedback("Evaluating...\nYour response is being processed.");
@@ -39,14 +55,69 @@ export default function SelfEvaluation() {
     }, 2000);
   };
 
+  const handleFileUpload = async (e) => {
+    e.preventDefault();
+    if (!file) {
+      alert("Please select a file to upload.");
+      return;
+    }
+  
+    // Validate file type
+    if (file.type !== "application/pdf") {
+      alert("Only PDF files are allowed.");
+      return;
+    }
+  
+    setIsUploading(true); // Set loading state
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("studentId", userId); // Append studentId to the FormData
+  
+    try {
+      const response = await axios.post("http://localhost:5000/api/auth/upload-pdf", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      if (response.data.success) {
+        setUploadStatus("File uploaded and processed successfully!");
+        setExtractedText(response.data.text); // Store the extracted text
+        console.log("Extracted text:", response.data.text);
+      } else {
+        setUploadStatus("Failed to process file.");
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      setUploadStatus("Failed to upload file.");
+    } finally {
+      setIsUploading(false); // Reset loading state
+    }
+  };
+
+  const handleClearFile = () => {
+    setFile(null);
+    setUploadStatus("");
+    setExtractedText("");
+  };
+
   const handleChatSend = async (e) => {
     e.preventDefault();
     const message = e.target.message.value;
+  
     if (message.trim()) {
       setChatMessages((prev) => [...prev, { text: message, sender: "user" }]);
       e.target.reset();
+      setIsChatLoading(true); // Set loading state
+  
       try {
-        const response = await axios.post("http://localhost:5000/api/auth/selfEvaluation", { query: message });
+        // Combine the extracted text with the user's message
+        const fullPrompt = extractedText ? `${extractedText}\n\nUser Query: ${message}` : message;
+  
+        const response = await axios.post("http://localhost:5000/api/auth/selfEvaluation", {
+          query: fullPrompt, // Send the combined prompt to the backend
+        });
+  
         const botResponse = response.data;
         setChatMessages((prev) => [
           ...prev,
@@ -64,18 +135,16 @@ export default function SelfEvaluation() {
           ...prev,
           { text: "Sorry, I couldn't process your query at this time.", sender: "bot" },
         ]);
+      } finally {
+        setIsChatLoading(false); // Reset loading state
       }
     }
   };
 
-
   const renderMessageContent = (message) => {
     return (
       <div>
-        {/* Render the main explanation text */}
         {message.text && <p style={{ marginBottom: "10px", fontSize: "16px" }}>{message.text}</p>}
-  
-        {/* Render LaTeX formulas in a separate block */}
         {message.formulas && message.formulas.length > 0 && (
           <div className="formula-section">
             <h4>📘 Formulas:</h4>
@@ -86,8 +155,6 @@ export default function SelfEvaluation() {
             ))}
           </div>
         )}
-  
-        {/* Render images in a separate block */}
         {message.graphs && message.graphs.length > 0 && (
           <div className="image-section">
             <h4>🖼️ Visual Explanation:</h4>
@@ -101,8 +168,6 @@ export default function SelfEvaluation() {
             ))}
           </div>
         )}
-  
-        {/* Render links in a separate block */}
         {message.links && message.links.length > 0 && (
           <div className="link-section">
             <h4>🔗 Useful Links:</h4>
@@ -119,8 +184,6 @@ export default function SelfEvaluation() {
             ))}
           </div>
         )}
-  
-        {/* Render code blocks in a separate section */}
         {message.code && message.code.length > 0 && (
           <div className="code-section">
             <h4>💻 Code Example:</h4>
@@ -150,14 +213,10 @@ export default function SelfEvaluation() {
       </div>
     );
   };
-  
 
   return (
     <div className="container">
-      {/* Chat Section (Right 25% width) */}
       <div className="right-section">
-      
-
         <motion.div className="upload-section" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
           <h2>Upload Answer</h2>
           <textarea
@@ -192,9 +251,6 @@ export default function SelfEvaluation() {
         </motion.div>
       </div>
 
-   
-
-      {/* Chat Section (Left 25% width) */}
       <motion.div className="chat-section" initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
         <h2>Chat with Bot</h2>
         <div className="chat-window">
@@ -210,10 +266,31 @@ export default function SelfEvaluation() {
             </motion.div>
           ))}
         </div>
+
+        <div className="file-upload-section">
+          <h2>Upload PDF File</h2>
+          <form onSubmit={handleFileUpload}>
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={(e) => setFile(e.target.files[0])}
+            />
+            <button type="submit" disabled={isUploading}>
+              {isUploading ? "Uploading..." : "Upload"}
+            </button>
+            {file && (
+              <button onClick={handleClearFile} className="clear-btn">
+                Clear File
+              </button>
+            )}
+          </form>
+          {uploadStatus && <p>{uploadStatus}</p>}
+        </div>
+
         <form onSubmit={handleChatSend} className="chat-input">
           <input type="text" name="message" placeholder="Type a message..." required />
-          <button type="submit" className="send-btn">
-            Send
+          <button type="submit" disabled={isChatLoading}>
+            {isChatLoading ? "Sending..." : "Send"}
           </button>
         </form>
       </motion.div>
