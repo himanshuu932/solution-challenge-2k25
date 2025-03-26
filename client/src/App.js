@@ -8,7 +8,10 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   return (
     <div className="App">
-      <Home />
+      <Home
+        user={user}
+        setUser={setUser}
+      />
     </div>
   );
 }

@@ -21,6 +21,7 @@ export default function SelfEvaluation() {
   const [extractedText, setExtractedText] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [image, setImage] = useState(null);
 
 let userId = null;
   const token = localStorage.getItem("token");
@@ -42,11 +43,29 @@ let userId = null;
     "Write an essay on SDG4.",
   ];
 
+
+
+
   const submitAnswer = () => {
+
     setFeedback("Evaluating...\nYour response is being processed.");
+
     setTimeout(() => {
-      setFeedback("Great attempt! Your answers are under review.");
+
+      setFeedback(
+
+        "Great attempt! Try to elaborate more on key points.\nIdeal answer: SDG4 focuses on ensuring inclusive and equitable quality education."
+
+      );
+
+      const newAnswers = [...answers];
+
+      newAnswers[selectedQuestionNumber - 1] = "answered";
+
+      setAnswers(newAnswers);
+
     }, 2000);
+
   };
 
   const handleFileUpload = async (e) => {

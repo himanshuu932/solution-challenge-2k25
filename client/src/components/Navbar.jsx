@@ -11,6 +11,7 @@ import { Home, MessageCircle, ClipboardList, Info, Heart, PlusCircle, BookOpenCh
 import ProfileBookModal from "./ProfileBookModal"; // Ensure the path is correct
 import { jwtDecode } from 'jwt-decode';
 import DiscussionSection from "./Discussion";
+import Auth from "../Login";
 
 function Navbar({ setActiveScreen,isLoggedIn, user, setUser, isDarkMode, setIsDarkMode,toggleAnnouncementPanel,announcementCount }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -22,6 +23,8 @@ function Navbar({ setActiveScreen,isLoggedIn, user, setUser, isDarkMode, setIsDa
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [isEvaluateOpen, setIsEvaluateOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false); // New state for auth modal
+  const [showAuth, setShowAuth] = useState(false);
   const [selectedNavItem, setSelectedNavItem] = useState(null); // Track selected nav item
   const profileRef = useRef(null);
   const [isDiscussionDropdownOpen, setIsDiscussionDropdownOpen] = useState(false);
@@ -62,6 +65,20 @@ function Navbar({ setActiveScreen,isLoggedIn, user, setUser, isDarkMode, setIsDa
     console.log("Logout successful.");
     window.location.reload();
   };
+
+  const handleSignIn = () => {
+    setShowAuth(true);
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuth(false);
+    window.location.reload();
+  };
+
+  if (showAuth) {
+    return <Auth user={user} setUser={setUser} onSuccess={handleAuthSuccess} />;
+  }
+
 
   // Function to fetch the user profile when "View Your Profile" is clicked
   const handleViewProfile = async () => {
@@ -259,18 +276,19 @@ function Navbar({ setActiveScreen,isLoggedIn, user, setUser, isDarkMode, setIsDa
             <DiscussionSection />
           </div>
         </div>}
-        {!isLoggedIn && <div className="navbar-right">
-          
-       
-          <img
-            src={isDarkMode ? lightmode : darkmode}
-            alt={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            className="mode-toggle icon-image"
-            onClick={toggleTheme}
-          />
-          <button className="signinButton" >Sign In</button>
-         
-        </div>}
+        {!isLoggedIn && (
+          <div className="navbar-right">
+            <img
+              src={isDarkMode ? lightmode : darkmode}
+              alt={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+              className="mode-toggle icon-image"
+              onClick={toggleTheme}
+            />
+            <button className="signinButton" onClick={handleSignIn}>
+              Sign In
+            </button>
+          </div>
+        )}
         
       </nav>
 
