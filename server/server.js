@@ -13,7 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(
     cors({
-      origin: "https://dancing-sawine-fa5298.netlify.app", 
+      origin: true, 
       credentials: true, 
     })
   );
