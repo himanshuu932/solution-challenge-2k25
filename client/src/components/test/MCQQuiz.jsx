@@ -3,16 +3,19 @@ import axios from "axios";
 import {jwtDecode} from "jwt-decode";
 import "../styles/MCQQuiz.css";
 
-const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSubmit }) => {
+const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSubmit, timeLimit }) => {
   const [questions, setQuestions] = useState(initialQuestions);
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState(Array(initialQuestions.length).fill(null));
   const [visited, setVisited] = useState(Array(initialQuestions.length).fill(false));
-  const [timeLeft, setTimeLeft] = useState(15); // seconds for demo
+  const [timeLeft, setTimeLeft] = useState(timeLimit * 60); // Convert minutes to seconds
   const [timeTaken, setTimeTaken] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [currentReview, setCurrentReview] = useState(0);
+  const [timerWarning, setTimerWarning] = useState(false);
+  const backend_link = "https://hackblitz-nine.vercel.app";
+
 
   // Get user id from token stored in localStorage
   let userId = null;
@@ -32,17 +35,32 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSub
 
   // Countdown timer effect
   useEffect(() => {
-    if (submitted || timeLeft === 0) return;
-    const timer = setInterval(() => {
-      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
-      setTimeTaken((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft, submitted]);
+    if (submitted || timeLeft <= 0) return;
 
-  // Auto-submit when time runs out
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        const newTime = prev - 1;
+        setTimeTaken(timeLimit * 60 - newTime);
+        
+        // Show warning when 5 minutes left
+        if (newTime <= 300 && !timerWarning) {
+          setTimerWarning(true);
+        }
+        
+        // Flash warning when 1 minute left
+        if (newTime <= 60) {
+          document.querySelector('.mcq-timer').classList.add('danger-flash');
+        }
+        
+        return newTime;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [submitted, timeLimit, timerWarning]);
+
   useEffect(() => {
-    if (timeLeft === 0 && !submitted) {
+    if (timeLeft <= 0 && !submitted) {
       handleFinalSubmit();
     }
   }, [timeLeft, submitted]);
@@ -88,10 +106,10 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSub
     };
 
     try {
-      await axios.post('http://localhost:5000/api/auth/test-details', payload);
+      await axios.post(`${backend_link}/api/auth/test-details`, payload);
       console.log('Test attempt saved successfully');
 
-      await axios.post(`/api/auth/tests/${testId}/attempt`, {
+      await axios.post(`${backend_link}/api/auth/tests/${testId}/attempt`, {
         studentId: userId, // Pass the student's ID
       });
     } catch (error) {
@@ -118,6 +136,8 @@ const MCQQuiz = ({ setStartTest, questions: initialQuestions = [], testId, onSub
   return (
     <div className="mcq-quiz-container">
       {/* Sidebar and navigation (omitted for brevity) */}
+
+     
       <div className="mcq-sidebar">
         <div className="mcq-sidebar-title">Questions</div>
         <div className="mcq-question-nav">

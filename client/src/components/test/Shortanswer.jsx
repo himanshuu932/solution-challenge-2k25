@@ -16,6 +16,7 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [], testId, o
   const [evaluating, setEvaluating] = useState(false);
   const [currentReview, setCurrentReview] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const backend_link = "https://hackblitz-nine.vercel.app";
 
   // Get user id from token stored in localStorage
   let userId = null;
@@ -62,31 +63,54 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [], testId, o
 
   const handleFileUpload = async (qIndex, file) => {
     if (submitted) return;
-
-    // Validate file type and size
-    const allowedTypes = ["text/plain", "application/pdf", "image/jpeg", "image/png"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
+  
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "text/plain"];
+    const maxSize = 5 * 1024 * 1024;
+  
     if (!allowedTypes.includes(file.type)) {
-      alert("Invalid file type. Please upload a text, PDF, or image file.");
+      alert("Only PDF, PNG, JPG, and TXT files are allowed.");
       return;
     }
-
+  
     if (file.size > maxSize) {
-      alert("File size exceeds the limit of 5MB.");
+      alert("File size exceeds the 5MB limit.");
       return;
     }
-
+  
     setUploading(true);
-
-    // Simulate file upload delay (replace with actual upload logic)
-    setTimeout(() => {
+  
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("studentId", userId); // 👈 Include studentId
+  
+    try {
+      const res = await axios.post(`${backend_link}/api/auth/upload-pdf`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
+      const extractedText = res.data.text || "";
+  
+      const updatedAnswers = [...answers];
+      updatedAnswers[qIndex] = extractedText;
+      setAnswers(updatedAnswers);
+  
+      const updatedVisited = [...visited];
+      updatedVisited[qIndex] = true;
+      setVisited(updatedVisited);
+  
       const updatedFiles = [...files];
       updatedFiles[qIndex] = file;
       setFiles(updatedFiles);
+    } catch (err) {
+      console.error("File upload failed:", err);
+      alert("Failed to extract text from file.");
+    } finally {
       setUploading(false);
-    }, 1000);
+    }
   };
+  
+  
+  
 
   const handleNextOrSubmit = () => {
     if (currentQ < questions.length - 1) {
@@ -113,12 +137,14 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [], testId, o
       setEvaluating(true);
 
       // Evaluate the answers
-      const evaluationResponse = await axios.post("http://localhost:5000/api/auth/evaluateShortAnswers", {
+      const evaluationResponse = await axios.post(`${backend_link}/api/auth/evaluateShortAnswers`, {
         answers: evaluationPayload,
       });
       setEvaluation(evaluationResponse.data);
       setEvaluating(false);
       setCurrentReview(0);
+
+      console.log("this is the time taken: "+ timeTaken);
 
       // Prepare the payload for saving test details
       const totalScore = evaluationResponse.data.totalScore;
@@ -130,7 +156,7 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [], testId, o
         totalQuestions: questions.length,
         correctAnswers: totalScore, // Assuming totalScore is the number of correct answers
         incorrectAnswers: questions.length - totalScore,
-        timeTaken,
+        time: timeTaken,
         answers: questions.map((q, idx) => ({
           questionId: q._id || q.id || idx,
           answerText: answers[idx],
@@ -138,9 +164,25 @@ const ShortAnswer = ({ setStartTest, questions: initialQuestions = [], testId, o
         })),
       };
 
+
+
+      try{
+        await axios.post(`${backend_link}/api/auth/test-details`, testDetailsPayload);
+        console.log("Test attempt saved successfully");
+
+        const cleanedTestId = testId?.trim();
+
+  
+        await axios.post(`${backend_link}/api/auth/tests/${cleanedTestId}/attempt`, {
+          studentId: userId,
+        });
+        
+      }catch(error){
+        console.error('Error saving test attempt:', error);
+      }
+
       // Save test details
-      await axios.post("http://localhost:5000/api/auth/test-details", testDetailsPayload);
-      console.log("Test attempt saved successfully");
+     
 
       // Call the onSubmit callback if provided
       if (onSubmit) {

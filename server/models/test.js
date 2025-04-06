@@ -11,6 +11,7 @@ const TestSchema = new mongoose.Schema({
   teacherId: { type: String, required: true },
   attemptedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Array of student IDs
   createdAt: { type: Date, default: Date.now },
+  time: { type: Number, required: true},
 });
 
 export default mongoose.model("Test", TestSchema);

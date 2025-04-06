@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Navbar from "./components/Navbar";
 import SelfEvaluation from "./components/SelfEvaluation";
 import "./Home.css";
@@ -9,8 +9,11 @@ import TestCreator from "./components/TestCreator";
 import AboutUs from "./components/AboutUs";
 import { jwtDecode } from 'jwt-decode';
 import HeroSection from "./components/HeroSection";
+import Evaluate from "./components/Examevaluate";
 
-function Home1({ user, setUser ,isLoggedIn}) {
+
+const backend_link = "https://hackblitz-nine.vercel.app";
+function Home1({ user, setUser ,isLoggedIn, setIsLoggedIn, token, setToken }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const savedScreen = localStorage.getItem("activeScreen");
   const [activeScreen, setActiveScreen] = useState(savedScreen ? parseInt(savedScreen) : 1);
@@ -20,10 +23,34 @@ function Home1({ user, setUser ,isLoggedIn}) {
   // New state: show/hide announcement panel
   const [showAnnouncements, setShowAnnouncements] = useState(false);
   const body = document.body;
+
+// Inside your component
+const announcementRef = useRef(null);
+
+// Click outside handler
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (announcementRef.current && !announcementRef.current.contains(event.target)) {
+      // Check if the click was not on the bell icon
+      const bellIcon = document.querySelector('.announcement-bell');
+      if (bellIcon && !bellIcon.contains(event.target)) {
+        setShowAnnouncements(false);
+      }
+    }
+  };
+
+  if (showAnnouncements) {
+    document.addEventListener('mousedown', handleClickOutside);
+  }
+
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, [showAnnouncements]);
   
   // Assuming classId is stored in the user object
   let classId = null;
-  const token = localStorage.getItem('token');
+  //const token = localStorage.getItem('token');
 
   // Decode JWT to extract user details
   if (token) {
@@ -41,7 +68,7 @@ function Home1({ user, setUser ,isLoggedIn}) {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch("/api/class/announcements", {
+        const response = await fetch(`${backend_link}/api/class/announcements`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ classId }),
@@ -102,17 +129,20 @@ function Home1({ user, setUser ,isLoggedIn}) {
         setActiveScreen={setActiveScreen}
         user={user}
         setUser={setUser}
+        token={token}
+        setToken={setToken}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
         // Pass the announcement count and toggle function to Navbar
         announcementCount={announcements.length}
         toggleAnnouncementPanel={toggleAnnouncementPanel}
         isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
       />
 
       {/* Announcements Panel (only appears when toggled by the bell icon) */}
       {showAnnouncements && (
-        <div className="announcement-section">
+        <div className="announcement-section" ref={announcementRef}>
           <h2 className="announcement-title">Announcements</h2>
           {loading ? (
             <p>Loading announcements...</p>
@@ -166,12 +196,39 @@ function Home1({ user, setUser ,isLoggedIn}) {
         </div>
       )}
       
-      {activeScreen === 1 && <HeroSection/>}
-      {activeScreen === 2 && <DiscussionSection />}
-      {activeScreen === 3 && <TestComponent />}
-      {activeScreen === 4 && <AboutUs />}
-      {activeScreen === 5 && <BookDonationPage />}
-      {activeScreen === 7 && <SelfEvaluation />}
+      
+  {activeScreen === 1 ? (
+    <>
+      <HeroSection setActiveScreen={setActiveScreen}
+        user={user}
+        setUser={setUser}
+        token={token}
+        setToken={setToken}
+        isDarkMode={isDarkMode}
+        setIsDarkMode={setIsDarkMode}
+        // Pass the announcement count and toggle function to Navbar
+        announcementCount={announcements.length}
+        toggleAnnouncementPanel={toggleAnnouncementPanel}
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}/>
+    </>
+  ) : activeScreen === 2 ? (
+    <DiscussionSection />
+  ) : activeScreen === 3 ? (
+    <TestComponent />
+  ) : activeScreen === 4 ? (
+    <AboutUs />
+  ) : activeScreen === 5 ? (
+    <BookDonationPage />
+  ) : activeScreen === 7 ? (
+    <SelfEvaluation />
+  ) : activeScreen === 9 ? (
+    <Evaluate />
+  ) : (
+    <p>Invalid Screen</p>
+  )}
+
+
     </div>
   );
 }

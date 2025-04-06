@@ -49,7 +49,7 @@ export const teacherLogin = async (req, res) => {
   }
 };
 
-// ✅ Function to Assign a Class to a Teacher
+
 export const addClassToTeacher = async (req, res) => {
   try {
     const { teacherId, classId } = req.body;

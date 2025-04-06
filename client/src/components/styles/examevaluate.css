@@ -1,15 +1,15 @@
-/* examevaluate.css */
 .evaluate-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+  max-width: 800px;
+  margin: 100px auto 20px; /* top, horizontal (auto), bottom */
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
   
   .scrollable-section {
     max-height: 400px; /* Adjust height as needed */

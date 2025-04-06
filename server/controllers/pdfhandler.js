@@ -146,7 +146,9 @@ export const handlePdfUpload = async (file, studentId) => {
       extractedText += chunkText + "\n"; // Append the extracted text from each chunk
 
       // Delete the chunk file after processing
-      fs.unlinkSync(chunkPath);
+      if (fs.existsSync(chunkPath)) {
+        fs.unlinkSync(chunkPath);
+      }
     }
 
     // Delete the original uploaded file after processing

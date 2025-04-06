@@ -10,7 +10,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 1;
+  z-index: 1000;
 }
 
 .navbar.light {
@@ -76,6 +76,7 @@
 .navbar-right {
   display: flex;
   align-items: center;
+  position: relative; /* Added for dropdown positioning */
 }
 
 .status-dot {
@@ -130,12 +131,13 @@
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: border 0.3s ease;
+  transition: border 0.3s ease, transform 0.2s ease;
   object-fit: cover;
 }
 
 .profile-icon:hover {
   border: 2px solid #007bff;
+  transform: scale(1.05);
 }
 
 /* Prevent Overflow */
@@ -143,8 +145,9 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to visible for dropdown */
   padding-right: 10px;
+  gap: 1rem;
 }
 
 @media (max-width: 400px) {
@@ -164,8 +167,9 @@
   border-radius: 10px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   padding: 1rem;
-  z-index: 1001;
+  z-index: 9999; /* Increased z-index to ensure it's above all content */
   text-align: center;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .profile-dropdown img.profile-pic {
@@ -187,12 +191,14 @@
   padding: 0.4rem 1rem;
   border-radius: 20px;
   cursor: pointer;
-  margin-bottom: 0.5rem;
-  transition: background 0.3s ease;
+  margin-bottom: 0.8rem;
+  transition: background 0.3s ease, transform 0.2s ease;
+  width: 100%;
 }
 
 .view-profile-btn:hover {
   background-color: #0056b3;
+  transform: translateY(-2px);
 }
 
 /* Logout Button Inside Dropdown */
@@ -203,6 +209,73 @@
 
 .profile-dropdown .logout-button:hover {
   background-color: #c82333;
+}
+
+/* Sign In Dropdown Styling */
+.signin-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  width: 180px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  z-index: 9999; /* Increased z-index significantly to ensure visibility */
+  animation: fadeIn 0.2s ease-out;
+}
+
+.signin-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.signin-dropdown ul li {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.signin-dropdown ul li:hover {
+  background-color: #f0f0f0;
+  color: #ff7700;
+}
+
+.signin-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 20px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #fff;
+}
+
+/* Dark Mode Support for Sign In Dropdown */
+body.dark-mode .signin-dropdown {
+  background-color: #333;
+  color: #f1f1f1;
+}
+
+body.dark-mode .signin-dropdown ul li:hover {
+  background-color: #444;
+  color: #ff9500;
+}
+
+body.dark-mode .signin-dropdown::before {
+  border-bottom-color: #333;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Dark Mode Support */
@@ -258,7 +331,7 @@ body.dark-mode .logout-button:hover {
   width: 100%;
   padding: 1rem;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 600;
+  z-index: 9990; /* Increased z-index */
 }
 
 .mobile-menu .user-name-display {
@@ -282,12 +355,25 @@ body.dark-mode .logout-button:hover {
   text-decoration: none;
   font-size: 1.2rem;
   font-weight: bold;
+  cursor: pointer;
+  display: block;
+  padding: 8px 0;
+  transition: color 0.2s ease;
+}
+
+.mobile-menu ul li a:hover {
+  color: #ff7700;
 }
 
 /* Hide desktop nav links on mobile */
 @media (max-width: 768px) {
   .navbar-links {
       display: none;
+  }
+  
+  .signin-dropdown {
+    width: 150px;
+    right: 10px;
   }
 }
 
@@ -342,6 +428,16 @@ body.dark-mode .navbar-links .nav-link:hover {
 }
 
 /* Icon Style */
+.nav-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
 .nav-icon svg {
   width: 24px;
   height: 24px;
@@ -350,6 +446,10 @@ body.dark-mode .navbar-links .nav-link:hover {
 }
 
 /* Hover Effect */
+.nav-icon.hovered {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
 .nav-icon.hovered svg {
   transform: scale(1.4);
   color: #007bff;
@@ -358,17 +458,18 @@ body.dark-mode .navbar-links .nav-link:hover {
 /* Label on Hover */
 .icon-label {
   position: absolute;
-  top: 40px;
+  top: 45px;
   left: 50%;
   transform: translateX(-50%);
   background-color: #fff;
   color: #333;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
   font-size: 0.75rem;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
-  z-index: 10;
+  z-index: 9995; /* Increased z-index */
+  animation: fadeIn 0.2s ease-out;
 }
 
 /* Selected Nav Item */
@@ -377,10 +478,10 @@ body.dark-mode .navbar-links .nav-link:hover {
 }
 
 .nav-item.selected .nav-icon {
-  background-color: rgba(255, 255, 255, 0.1); /* Light background */
+  background-color: rgba(0, 123, 255, 0.15); /* Light blue background */
   padding: 12px; /* Increase padding to make the box bigger */
   border-radius: 12px; /* Rounded corners */
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
   transform: scale(1.1); /* Slightly scale up the selected item */
   transform-origin: center; /* Ensure scaling happens from the center */
   transition: all 0.3s ease; /* Smooth transition */
@@ -401,10 +502,19 @@ body.dark-mode .icon-label {
   color: #fff;
 }
 
+body.dark-mode .nav-icon.hovered {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .announcement-bell {
   position: relative;
   cursor: pointer;
   margin-right: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.announcement-bell:hover {
+  transform: scale(1.1);
 }
 
 .announcement-bell svg {
@@ -426,16 +536,85 @@ body.dark-mode .icon-label {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.signinButton{
-  padding: 12px 24px;
+.discussion-icon {
+  position: relative;
+  margin-right: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.discussion-icon:hover {
+  transform: scale(1.1);
+}
+
+.signinButton {
+  padding: 10px 24px;
   font-size: 1rem;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   background: linear-gradient(to right, #ff5900, #ff9500);
   color: white;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
 }
 
+.signinButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 120, 0, 0.3);
+}
+
+.signinButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 120, 0, 0.2);
+}
+
+.signinButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+
+.signinButton:hover::after {
+  transform: translateX(100%);
+}
+
+/* Discussion dropdown */
+.discussion-dropdown {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  width: 320px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 9998; /* Increased z-index */
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.discussion-dropdown.open {
+  max-height: 500px;
+  opacity: 1;
+  pointer-events: all;
+}
+
+body.dark-mode .discussion-dropdown {
+  background-color: #333;
+  color: #f1f1f1;
+}

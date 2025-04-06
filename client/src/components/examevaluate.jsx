@@ -11,6 +11,8 @@ const Evaluate = ({ teacherId }) => {
   const [correctAnswerText, setCorrectAnswerText] = useState("");
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const backend_link = "https://hackblitz-nine.vercel.app";
+
 
   const handleEvaluate = async () => {
     // Check if at least one input method is provided for each field (file or text)
@@ -38,7 +40,7 @@ const Evaluate = ({ teacherId }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/exam-evaluate", formData, {
+      const response = await axios.post(`${backend_link}/api/auth/exam-evaluate`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

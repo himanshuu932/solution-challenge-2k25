@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import './styles/DiscussionSection.css'; // Import external CSS
+const backend_link = "https://hackblitz-nine.vercel.app";
 
 const DiscussionSection = () => {
   const token = localStorage.getItem('token');
@@ -23,7 +24,7 @@ const DiscussionSection = () => {
   const fetchMessages = async () => {
     if (!classId) return;
     try {
-      const response = await fetch(`/api/chat?classId=${classId}`, {
+      const response = await fetch(`${backend_link}/api/chat?classId=${classId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ const DiscussionSection = () => {
     if (newMessage.trim() === '') return;
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${backend_link}/api/chat`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

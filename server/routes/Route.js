@@ -9,6 +9,9 @@ import User from '../models/User.js';
 import test from '../models/test.js';
 import { handlePdfUpload } from '../controllers/pdfhandler.js';
 import { examevaluateController } from '../controllers/examevaluateController.js';
+import { studentOwnTest } from '../controllers/studentOwnTestController.js';
+import { evaluateFilesController } from '../controllers/evaluatemecontroller.js';
+
 
 const router = express.Router();
 
@@ -40,22 +43,48 @@ const upload = multer({ storage });
 
 router.get("/tests", async (req, res) => {
   try {
-    const { teacherId } = req.query;
-    console.log("this is the techer id coming from : "+teacherId);
+    const { teacherId, studentId } = req.query;
+    let query = {};
 
-    let tests;
     if (teacherId) {
       // Fetch tests created by the specific teacher
-      tests = await test.find({ teacherId });
-    } else {
-      // Fetch all tests (for students)
-      tests = await test.find({});
+      query.teacherId = teacherId;
+    } 
+    else if (studentId) {
+      // Get student with populated class information
+      const student = await User.findById(studentId).populate('class', 'name');
+      
+      if (!student) {
+        return res.status(404).json({ success: false, message: "Student not found." });
+      }
+      
+      if (!student.class) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Student has no class assigned." 
+        });
+      }
+
+      // Filter tests by the class name
+      query.level = student.class.name;
+    }
+    else {
+      // If neither teacherId nor studentId provided
+      return res.status(400).json({
+        success: false,
+        message: "Either teacherId or studentId must be provided"
+      });
     }
 
+    const tests = await test.find(query);
     res.json({ success: true, tests });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Failed to fetch tests." });
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch tests.",
+      error: err.message 
+    });
   }
 });
 
@@ -63,7 +92,7 @@ router.get("/tests", async (req, res) => {
 router.post("/tests/:testId/attempt", async (req, res) => {
   const { testId } = req.params;
   const { studentId } = req.body; // Student ID should be passed in the request body
-
+console.log("these are all the details: "+ testId+" , "+studentId);
   try {
     // Find the test by ID
     const Test = await test.findById(testId);
@@ -142,6 +171,19 @@ router.get("/student-performance", async (req, res) => {
 });
 
 
+router.get('/performance/:userId', studentOwnTest);
+
+
+router.post(
+  "/exam-evaluate",
+  upload.fields([
+    { name: "questionFile", maxCount: 1 },
+    { name: "studentAnswerFile", maxCount: 1 },
+    { name: "correctAnswerFile", maxCount: 1 },
+  ]),
+  examevaluateController
+);
+
 router.post('/upload-pdf', upload.single('file'), async (req, res) => {
   try {
     const { studentId } = req.body; // Assuming the student ID is available in the request
@@ -159,15 +201,10 @@ router.post('/upload-pdf', upload.single('file'), async (req, res) => {
   }
 });
 
-router.post(
-  "/exam-evaluate",
-  upload.fields([
-    { name: "questionFile", maxCount: 1 },
-    { name: "studentAnswerFile", maxCount: 1 },
-    { name: "correctAnswerFile", maxCount: 1 },
-  ]),
-  examevaluateController
-);
+
+
+
+router.post('/evaluate-answer', express.json(), evaluateFilesController);
 
 
 

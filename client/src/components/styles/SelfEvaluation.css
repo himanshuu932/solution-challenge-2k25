@@ -8,10 +8,12 @@ body {
   .container {
     display: flex;
     height: 100vh;
-    gap: 20px;
-    padding: 20px;
+    gap: 24px;
+    padding: 24px;
     box-sizing: border-box;
-  }
+    max-width: 95%;
+    margin: 0 auto;
+}
   
   /* Chat Section (Left - 25% width, 100% height) */
   .chat-section {
@@ -194,11 +196,11 @@ body {
   
   /* Right Section (25% width, 100% height) */
   .right-section {
-    width: 25%;
+    width: 30%;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-  }
+    gap: 24px;
+}
   
   /* Select Question Section (Top 50% height) */
   .select-question-sidebar {
@@ -290,20 +292,46 @@ body {
     font-size: 0.9rem;
     color: #555;
   }
+
+  .tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+}
+
+.tab-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button.active {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
   
   /* Upload Answer Section (Bottom 50% height) */
   .upload-section {
-    width: 92%;
-    height: 50%;
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
+    background: rgba(255, 255, 255, 0.9);
+    padding: 24px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
   
   .upload-section:hover {
     transform: translateY(-5px);
@@ -388,18 +416,17 @@ body {
     transform: scale(1.2);
   }
   
-  .submit-btn {
-    background: linear-gradient(135deg, #4caf50, #45a049);
+ .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: white;
     border: none;
-    padding: 12px 20px;
-    border-radius: 10px;
+    border-radius: 12px;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
+    transition: transform 0.2s ease;
+}
   .submit-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -532,14 +559,23 @@ body {
 }
 
 .file-upload-container {
-  border: 2px dashed #007bff;
+  border: 2px dashed #94a3b8;
+  border-radius: 12px;
   padding: 20px;
   text-align: center;
-  margin-bottom: 20px;
-  border-radius: 10px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
 }
 
 .file-upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  border-radius: 8px;
   cursor: pointer;
 }
 
@@ -600,3 +636,325 @@ body {
 .send-btn:hover {
   background-color: #0056b3;
 }
+
+.performance-section {
+  width: 100%;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.performance-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.performance-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.performance-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #3b82f6, #60a5fa);
+}
+
+.performance-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.metric {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.performance-date {
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* Progress Ring */
+.progress-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+}
+
+.progress-ring circle {
+  fill: none;
+  stroke-width: 6;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.progress-ring-background {
+  stroke: #e2e8f0;
+}
+
+.progress-ring-foreground {
+  stroke: #3b82f6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+/* Loading Animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.loading-indicator {
+  background: linear-gradient(90deg, #f8fafc 25%, #e2e8f0 50%, #f8fafc 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+  height: 100px;
+}
+
+
+/* Voice Input Styles */
+.voice-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  margin: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.voice-btn:hover {
+  background: #45a049;
+  transform: scale(1.1);
+}
+
+.voice-btn.active {
+  background: #f44336;
+  animation: pulse 1.5s infinite;
+}
+.listening-status {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Add these at the end of SelfEvaluation.css */
+
+/* Overlay styles */
+.overlay-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlay-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.overlay-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff5555;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Question select styles */
+.question-select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+/* Textarea styles */
+.answer-textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  resize: vertical;
+}
+
+/* File upload container */
+.file-upload-container {
+  margin-bottom: 15px;
+}
+
+/* Submit button */
+.submit-answer-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Feedback container */
+.feedback-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.feedback-title {
+  margin-top: 0;
+  color: #333;
+}
+
+/* Chat input container */
+.chat-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.overlay-toggle-btn {
+  position: absolute;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 5;
+}
+
+.chat-input-field {
+  flex: 1;
+  margin-left: 50px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.voice-btn {
+  margin-left: 5px;
+  padding: 0 15px;
+  height: 40px;
+  background-color: #f0f0f0;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.voice-btn.listening {
+  background-color: #ff5555;
+  color: white;
+}
+
+.send-btn {
+  margin-left: 5px;
+  padding: 0 15px;
+  height: 40px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.send-btn:disabled {
+  opacity: 0.7;
+}
+
+/* PDF section toggle */
+.pdf-section-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #aaa;
+  transform: rotate(0deg);
+  transition: transform 0.3s, color 0.3s;
+}
+
+.pdf-section-toggle.pinned {
+  color: #007bff;
+  transform: rotate(-45deg);
+}
+
+/* File evaluation form */
+
+
+
+
+
+

@@ -4,6 +4,7 @@ import { FaFilter, FaSearch, FaTimes, FaBell } from 'react-icons/fa';
 import { jwtDecode } from 'jwt-decode';
 import FilterBox from './FilterBox';
 import ItemCard from './ItemCard';
+const backend_link = "https://hackblitz-nine.vercel.app";
 
 const BookDonationPage = () => {
   // Local state for donations, modals, and notifications
@@ -58,7 +59,7 @@ const BookDonationPage = () => {
 
   // Fetch donations from backend on mount
   useEffect(() => {
-    fetch('/api/donations')
+    fetch(`${backend_link}/api/donations`)
       .then(res => res.json())
       .then(data => {
         const mappedItems = data.map(donation => ({
@@ -78,7 +79,7 @@ const BookDonationPage = () => {
   // Fetch notifications for current user
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(`/api/auth/${userId}/notifications`);
+      const response = await fetch(`${backend_link}/api/auth/${userId}/notifications`);
       if (!response.ok) {
         throw new Error('Failed to fetch notifications');
       }
@@ -91,7 +92,7 @@ const BookDonationPage = () => {
   
   const handleDeleteNotification = async (notificationId) => {
     try {
-      const response = await fetch(`/api/auth/${userId}/notifications/${notificationId}`, {
+      const response = await fetch(`${backend_link}/api/auth/${userId}/notifications/${notificationId}`, {
         method: 'DELETE'
       });
       if (!response.ok) {
@@ -111,7 +112,7 @@ const BookDonationPage = () => {
   };
 
   const removeDonation = (id) => {
-    fetch(`/api/donations/${id}`, { method: 'DELETE' })
+    fetch(`${backend_link}/api/donations/${id}`, { method: 'DELETE' })
       .then(res => res.json())
       .then(() => setItems(items.filter(item => item.id !== id)))
       .catch(error => console.error('Error deleting donation:', error));
@@ -135,7 +136,7 @@ const BookDonationPage = () => {
       donatedBy: userId
     };
 
-    fetch('/api/donations', {
+    fetch(`${backend_link}/api/donations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(donationData)
@@ -177,7 +178,7 @@ const BookDonationPage = () => {
       donatedBy: userId
     };
 
-    fetch(`/api/donations/${editingItem.id}`, {
+    fetch(`${backend_link}/api/donations/${editingItem.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedData)
@@ -271,50 +272,32 @@ const BookDonationPage = () => {
       </style>
       
       <div className="controls-section63696">
-        {/* Bell Icon with notification badge */}
-        <div style={{ position: 'relative', marginRight: '15px' }}>
-          <FaBell 
-            className="bell-icon63696" 
-            onClick={handleBellClick} 
-            style={{
-              fontSize: '1.5rem',
-              color: '#4a4a4a',
-              cursor: 'pointer',
-              animation: notifications.length > 0 ? 'bellShake 1s infinite' : 'none'
-            }}
-          />
-          {notifications.length > 0 && (
-            <span style={{
-              position: 'absolute',
-              top: '-5px',
-              right: '-5px',
-              backgroundColor: 'red',
-              color: 'white',
-              borderRadius: '50%',
-              width: '18px',
-              height: '18px',
-              fontSize: '12px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
-              {notifications.length}
-            </span>
-          )}
-        </div>
-        
-        <div className="search-container63696">
-          <FaSearch className="search-icon63696" />
-          <input
-            type="text"
-            placeholder="Search items..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="search-input63696"
-          />
-        </div>
-      </div>
-      
+  {/* Bell Icon with notification badge */}
+  <div className="bell-icon-container63696">
+    <FaBell 
+      className="bell-icon63696" 
+      onClick={handleBellClick} 
+      style={{
+        animation: notifications.length > 0 ? 'bellShake 1s infinite' : 'none'
+      }}
+    />
+    {notifications.length > 0 && (
+      <span className="notification-badge63696">{notifications.length}</span>
+    )}
+  </div>
+
+  {/* Search Bar */}
+  <div className="search-container63696">
+    <FaSearch className="search-icon63696" />
+    <input
+      type="text"
+      placeholder="Search items..."
+      value={searchTerm}
+      onChange={e => setSearchTerm(e.target.value)}
+      className="search-input63696"
+    />
+  </div>
+</div>
       {/* Notifications Modal */}
       {showNotificationsModal && (
         <div className="overlay63696" onClick={() => setShowNotificationsModal(false)}>
@@ -350,9 +333,9 @@ const BookDonationPage = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}>
-                    <span>
-                      <strong>{notif.requestedBy.username}</strong>: {notif.message} (Donation: {notif.donation.item})
-                    </span>
+<span>
+  <strong>{notif.requestedBy?.username || 'Unknown User'}</strong>: {notif.message} (Donation: {notif.donation?.item || 'Unknown Donation'})
+</span>
                     <button
                       onClick={() => handleDeleteNotification(notif._id)}
                       style={{
@@ -490,6 +473,7 @@ const BookDonationPage = () => {
                   allTags={allTags}
                   onApply={applyOthersDonationsFilters}
                   onClose={() => setShowFilterDropdown2(false)}
+                  style={{ color: "black" }}
                 />
               )}
               <div>

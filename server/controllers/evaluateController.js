@@ -7,9 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
 export const evaluateController = async (req, res) => {
   try {
-    // Expecting req.body.answers to be an array of objects.
-    // Each object should include:
-    //   questionId, question, correctAnswer, answer, (and optionally file info)
+   
     const { answers } = req.body;
     if (!answers || !Array.isArray(answers)) {
       return res.status(400).json({ error: "Invalid payload. 'answers' must be an array." });
@@ -21,7 +19,7 @@ export const evaluateController = async (req, res) => {
     for (const item of answers) {
       console.log("Evaluating item:", item);
 
-      // Construct an evaluation prompt with additional parameters.
+     
       const prompt = `Evaluate the following short answer response.
 Question: ${item.question}
 Correct Answer: ${item.correctAnswer}

@@ -8,6 +8,8 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
   const [tagsExpanded, setTagsExpanded] = useState(false);
 
+  const backend_link = "https://hackblitz-nine.vercel.app";
+
   const prevImage = () =>
     setCarouselIndex(prev => (prev === 0 ? item.images.length - 1 : prev - 1));
   const nextImage = () =>
@@ -38,7 +40,7 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
 
   const requestDonation = (donationId, requestedBy, message) => {
     console.log("Request message:", message);
-    return fetch('http://localhost:5000/api/donations/request', {
+    return fetch(`${backend_link}/api/donations/request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ donationId, requestedBy, message })
@@ -104,13 +106,13 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
             )}
           </div>
           {isMyDonation ? (
-            <div className="action-buttons63696">
-              <button className="remove-button63696" onClick={handleRemoveClick}>Remove</button>
-              <button className="edit-button63696" onClick={() => onEdit(item)}>Edit</button>
+            <div className="action-buttons363696">
+              <button className="remove-button363696" onClick={handleRemoveClick}>Remove</button>
+              <button className="edit-button363696" onClick={() => onEdit(item)}>Edit</button>
             </div>
           ) : (
-            <div className="item-actions-container63696">
-              <button className="appeal-button63696" onClick={openModal}>Request Item</button>
+            <div className="item-actions-container363696">
+              <button className="appeal-button363696" onClick={openModal}>Request Item</button>
             </div>
           )}
         </div>
@@ -119,7 +121,7 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
         <div className="modal-overlay263696" onClick={cancelRemove}>
           <div className="modal263696" onClick={e => e.stopPropagation()}>
             <h4>Are you sure you want to remove this item?</h4>
-            <div className="modal-actions63696">
+            <div className="modal-actions263696">
               <button onClick={handleRemoveItem}>Yes, Remove</button>
               <button onClick={cancelRemove}>Cancel</button>
             </div>
@@ -131,7 +133,7 @@ const ItemCard = memo(({ userId,item, isMyDonation, onRemove, onEdit, onRequest 
           <div className="modal263696" onClick={e => e.stopPropagation()}>
             <h4>Request Item</h4>
             <p>Would you like to request "{item.name}" from {item.postedBy}?</p>
-            <div className="modal-actions263696">
+            <div className="modal-actions63696">
               <button onClick={()=>requestDonation(item.id,userId,"please")}>Yes, Request</button>
               <button onClick={closeModal}>Cancel</button>
             </div>

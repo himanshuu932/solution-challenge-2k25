@@ -24,6 +24,7 @@ export const selfEvaluationController = async (req, res) => {
     - **Images (if applicable):** If a **graph or image** is useful, provide a **public URL**.  
     - **Links (if applicable):** Provide **clickable links** for additional resources.  
     - ❗ **DO NOT mix explanation, formulas, and code in the same section.** Keep them separate.
+    - **Use emojis (if applicable):**
     
     ---
     

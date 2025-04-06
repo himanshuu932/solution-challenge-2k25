@@ -11,11 +11,13 @@ function QuestionGenerator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const backend_link = "https://hackblitz-nine.vercel.app";
+
   const fetchQuestions = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/generate-questions", {
+      const response = await axios.post(`${backend_link}/api/auth/generate-questions`, {
         topic,
         type,
         level,

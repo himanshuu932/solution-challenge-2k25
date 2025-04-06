@@ -2,7 +2,7 @@ import Test from '../models/test.js';
 import User from '../models/User.js';
 
 export const testController = async (req, res) => {
-  const { testName, topic, type, level, numberOfQuestions, questions, teacherId } = req.body;
+  const { testName, topic, type, level, numberOfQuestions, questions, teacherId, time } = req.body;
   try {
     const newTest = new Test({
       testName,
@@ -12,6 +12,7 @@ export const testController = async (req, res) => {
       numberOfQuestions,
       questions,
       teacherId,
+      time,
     });
   
     await newTest.save();
@@ -56,7 +57,8 @@ export const saveTestDetails = async (req, res) => {
         incorrectAnswers: incorrectAnswers,
         timeTaken: timeTaken,
         answers: answers,
-        attemptedAt: new Date()
+        attemptedAt: new Date(),
+        time:timeTaken,
       });
     }
 
