@@ -18,7 +18,7 @@ const LoginForm = ({ onSuccess, setUser }) => {
 
     try {
       const res = await axios.post(`${backend_link}/api/auth/login`, formData);
-      console.log("Login Data:", res.data);
+     
 
       if (res.data.ok) {
         setMessage({ text: 'Login Successful!', type: 'success' });
