@@ -35,7 +35,7 @@ const TestComponent = () => {
     }
   }
 
-  console.log("thsi is userId: " + userId);
+
 
   useEffect(() => {
     const fetchTests = async () => {
